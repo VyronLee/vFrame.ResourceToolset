@@ -1,6 +1,8 @@
 using Sirenix.OdinInspector;
+using UnityEditor;
 using UnityEngine;
 using vFrame.ResourceToolset.Editor.Const;
+using vFrame.ResourceToolset.Editor.Exceptions;
 
 namespace vFrame.ResourceToolset.Editor.Configs
 {
@@ -14,21 +16,31 @@ namespace vFrame.ResourceToolset.Editor.Configs
     internal class BuiltinAssetConfig : ScriptableSingleton<BuiltinAssetConfig>
     {
         [SerializeField]
-        [FolderPath]
-        private string _builtinReplacementMaterialsDir;
+        [AssetsOnly]
+        private Object _builtinReplacementMaterialsDir;
 
         [SerializeField]
-        [FolderPath]
-        private string _builtinReplacementUISkinDir;
+        [AssetsOnly]
+        private Object _builtinReplacementTextureDir;
 
         public string BuiltinReplacementMaterialsDir {
-            get => _builtinReplacementMaterialsDir;
-            set => _builtinReplacementMaterialsDir = value;
+            get {
+                if (!_builtinReplacementMaterialsDir) {
+                    throw new ResourceToolsetException("Please assign replacement materials directory first.");
+                }
+                return AssetDatabase.GetAssetPath(_builtinReplacementMaterialsDir);
+            }
+            set => _builtinReplacementMaterialsDir = AssetDatabase.LoadAssetAtPath<Object>(value);
         }
 
-        public string BuiltinReplacementUISkinDir {
-            get => _builtinReplacementUISkinDir;
-            set => _builtinReplacementUISkinDir = value;
+        public string BuiltinReplacementTextureDir {
+            get {
+                if (!_builtinReplacementTextureDir) {
+                    throw new ResourceToolsetException("Please assign replacement texture directory first.");
+                }
+                return AssetDatabase.GetAssetPath(_builtinReplacementTextureDir);
+            }
+            set => _builtinReplacementTextureDir = AssetDatabase.LoadAssetAtPath<Object>(value);
         }
     }
 }

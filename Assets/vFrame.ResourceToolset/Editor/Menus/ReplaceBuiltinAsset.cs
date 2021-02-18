@@ -6,9 +6,9 @@ using vFrame.ResourceToolset.Editor.Const;
 using vFrame.ResourceToolset.Editor.Utils;
 using Object = UnityEngine.Object;
 
-namespace vFrame.ResourceToolset.Editor.Processors
+namespace vFrame.ResourceToolset.Editor.Menus
 {
-    internal class ReplaceBuiltinAssetProcessor : AssetPostprocessor
+    internal static class ReplaceBuiltinAsset
     {
         private static readonly string[] ManagedAssetTypes = {".unity", ".mat", ".prefab" };
 
@@ -35,7 +35,7 @@ namespace vFrame.ResourceToolset.Editor.Processors
             return objects;
         }
 
-        [MenuItem(ToolsetConst.AssetProcessorMenuDir + "Replace Builtin Assets")]
+        [MenuItem(ToolsetConst.AssetsMenuDir + "Replace Builtin Assets")]
         private static void ReplaceBuiltinAssets() {
             var objects = GetSelectedObjects();
             var index = 0f;

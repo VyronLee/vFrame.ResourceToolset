@@ -27,18 +27,20 @@ namespace vFrame.ResourceToolset.Editor.Utils
             throw new BuiltinReplacementAssetNotFoundException("No builtin material replacement found: " + name);
         }
 
-        public static Sprite GetReplacementBuiltinUISprite(string name) {
-            var dir = BuiltinAssetConfig.Instance.BuiltinReplacementUISkinDir;
-            var sprite = AssetDatabase.LoadAssetAtPath<Sprite>($"{dir}/{name}.psd");
+        public static Sprite GetReplacementBuiltinSprite(string name) {
+            var dir = BuiltinAssetConfig.Instance.BuiltinReplacementTextureDir;
+            var path = $"{dir}/{name}.psd";
+            var sprite = AssetDatabase.LoadAssetAtPath<Sprite>(path);
             if (sprite) {
                 return sprite;
             }
             throw new BuiltinReplacementAssetNotFoundException("No builtin sprite replacement found: " + name);
         }
 
-        public static Texture2D GetReplacementBuiltinUITexture(string name) {
-            var dir = BuiltinAssetConfig.Instance.BuiltinReplacementUISkinDir;
-            var texture = AssetDatabase.LoadAssetAtPath<Texture2D>($"{dir}/{name}.psd");
+        public static Texture GetReplacementBuiltinTexture(string name) {
+            var dir = BuiltinAssetConfig.Instance.BuiltinReplacementTextureDir;
+            var path = $"{dir}/{name}.psd";
+            var texture = AssetDatabase.LoadAssetAtPath<Texture>(path);
             if (texture) {
                 return texture;
             }
@@ -138,7 +140,7 @@ namespace vFrame.ResourceToolset.Editor.Utils
                     continue;
                 }
 
-                texture = GetReplacementBuiltinUITexture(texture.name);
+                texture = GetReplacementBuiltinTexture(texture.name);
                 if (!texture) {
                     continue;
                 }
@@ -246,7 +248,7 @@ namespace vFrame.ResourceToolset.Editor.Utils
                     continue;
                 }
 
-                var sprite = GetReplacementBuiltinUISprite(p.sprite.name);
+                var sprite = GetReplacementBuiltinSprite("UI/Skin/" + p.sprite.name);
                 if (!sprite) {
                     continue;
                 }
@@ -267,7 +269,7 @@ namespace vFrame.ResourceToolset.Editor.Utils
                     continue;
                 }
 
-                var texture = GetReplacementBuiltinUITexture(p.texture.name);
+                var texture = GetReplacementBuiltinTexture("UI/Skin/" + p.texture.name);
                 if (!texture) {
                     continue;
                 }
