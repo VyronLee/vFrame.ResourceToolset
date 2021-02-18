@@ -4,7 +4,7 @@ using UnityEngine;
 
 namespace vFrame.ResourceToolset.Editor.Configs
 {
-    internal class ScriptableSingleton<T> : ScriptableObject where T : ScriptableObject
+    public class ScriptableSingleton<T> : ScriptableObject where T : ScriptableObject
     {
         private static T _instance;
 
@@ -42,7 +42,7 @@ namespace vFrame.ResourceToolset.Editor.Configs
     }
 
     [AttributeUsage(AttributeTargets.Class)]
-    internal class FilePathAttribute : Attribute
+    public class FilePathAttribute : Attribute
     {
         public enum Location
         {
