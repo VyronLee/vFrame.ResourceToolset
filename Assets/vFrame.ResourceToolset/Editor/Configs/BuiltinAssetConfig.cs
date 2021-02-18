@@ -1,3 +1,4 @@
+using Sirenix.OdinInspector;
 using UnityEngine;
 using vFrame.ResourceToolset.Editor.Const;
 
@@ -10,14 +11,14 @@ namespace vFrame.ResourceToolset.Editor.Configs
     [FilePath(
         ToolsetConst.BuiltinAssetConfigFilePath,
         FilePathAttribute.Location.ProjectFolder)]
-    internal class BuiltinAssetConfig : RTSScriptableSingleton<BuiltinAssetConfig>
+    internal class BuiltinAssetConfig : ScriptableSingleton<BuiltinAssetConfig>
     {
         [SerializeField]
-        [Sirenix.OdinInspector.FilePath]
+        [FolderPath]
         private string _builtinReplacementMaterialsDir;
 
         [SerializeField]
-        [Sirenix.OdinInspector.FilePath]
+        [FolderPath]
         private string _builtinReplacementUISkinDir;
 
         public string BuiltinReplacementMaterialsDir {
