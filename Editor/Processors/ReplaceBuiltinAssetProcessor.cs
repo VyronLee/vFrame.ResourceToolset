@@ -23,7 +23,7 @@ namespace vFrame.ResourceToolset.Editor.Processors
             var index = 0f;
             foreach (var asset in assets) {
                 var p = AssetDatabase.GUIDToAssetPath(asset);
-                EditorUtility.DisplayProgressBar("Loading assets", p, ++index / assets.Length);
+                EditorUtility.DisplayProgressBar("Filtering Assets", p, ++index / assets.Length);
 
                 if (!ManagedAssetTypes.Any(v => p.ToLower().EndsWith(v))) {
                     continue;
@@ -40,6 +40,7 @@ namespace vFrame.ResourceToolset.Editor.Processors
             var objects = GetSelectedObjects();
             var index = 0f;
             var ret = false;
+            var changed = new List<string>();
             try {
                 foreach (var obj in objects) {
                     var path = AssetDatabase.GetAssetPath(obj);
@@ -49,19 +50,27 @@ namespace vFrame.ResourceToolset.Editor.Processors
                     }
 
                     ret |= BuiltinAssetsReplacementUtils.ReplaceBuiltinAssets(obj);
+                    if (ret) {
+                        changed.Add(path);
+                    }
                 }
             }
             finally {
                 EditorUtility.ClearProgressBar();
             }
 
-            if (!ret)
+            if (!ret) {
+                Debug.Log("Replace builtin assets finished, nothing changed.");
                 return;
+            }
 
             AssetDatabase.SaveAssets();
             AssetDatabase.Refresh();
 
             Resources.UnloadUnusedAssets();
+
+            Debug.Log("Replace builtin assets finished, asset files list below has been processed: \n"
+                + string.Join("\n", changed.ToArray()));
         }
     }
 }

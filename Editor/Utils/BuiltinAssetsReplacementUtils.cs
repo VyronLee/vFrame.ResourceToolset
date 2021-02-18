@@ -114,7 +114,6 @@ namespace vFrame.ResourceToolset.Editor.Utils
 
             var ret = false;
 
-            // 使用的是内置shader，直接替换
             if (IsBuiltinExtraResource(material.shader)) {
                 var newShader = Shader.Find(material.shader.name);
                 if (newShader == material.shader) {
@@ -127,7 +126,6 @@ namespace vFrame.ResourceToolset.Editor.Utils
                 }
             }
 
-            // shader中引用了内置贴图，替换掉
             var propertyCount = ShaderUtil.GetPropertyCount(material.shader);
             for (var i = 0; i < propertyCount; i++) {
                 if (ShaderUtil.GetPropertyType(material.shader, i) != ShaderUtil.ShaderPropertyType.TexEnv) {

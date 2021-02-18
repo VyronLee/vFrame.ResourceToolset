@@ -4,11 +4,11 @@ using UnityEngine;
 
 namespace vFrame.ResourceToolset.Editor.Configs
 {
-    internal class RTSScriptableSingleton<T> : ScriptableObject where T : ScriptableObject
+    internal class ScriptableSingleton<T> : ScriptableObject where T : ScriptableObject
     {
         private static T _instance;
 
-        protected RTSScriptableSingleton() {
+        protected ScriptableSingleton() {
             if (_instance != null)
                 Debug.LogError("ScriptableSingleton already exists. Did you query the singleton in a constructor?");
             else
