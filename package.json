@@ -1,16 +1,16 @@
 {
   "name": "com.vyronlee.vframe.resourcetoolset",
-  "version": "1.0.0",
-  "displayName": "vFrame ResourceToolset",
+  "version": "1.0.1",
+  "displayName": "vFrame Resource Toolset",
   "description": "A bundle of resource tools to optimize your game assets!",
+  "unity": "2018.4",
   "keywords": [
-    "vFrame",
-    "resources",
-    "toolset"
+    "vFrame"
   ],
   "author": {
     "name": "VyronLee",
     "email": "lwz_jz@hotmail.com",
     "url": "https://vyronlee.com"
-  }
+  },
+  "license": "Apache-2.0"
 }
