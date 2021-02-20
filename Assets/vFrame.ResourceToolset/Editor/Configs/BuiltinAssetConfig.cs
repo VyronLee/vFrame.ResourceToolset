@@ -23,6 +23,10 @@ namespace vFrame.ResourceToolset.Editor.Configs
         [AssetsOnly]
         private Object _builtinReplacementTextureDir;
 
+        [SerializeField]
+        [AssetsOnly]
+        private Material _fbxInternalMaterialReplacement;
+
         public string BuiltinReplacementMaterialsDir {
             get {
                 if (!_builtinReplacementMaterialsDir) {
@@ -42,5 +46,7 @@ namespace vFrame.ResourceToolset.Editor.Configs
             }
             set => _builtinReplacementTextureDir = AssetDatabase.LoadAssetAtPath<Object>(value);
         }
+
+        public Material FBXInternalMaterialReplacement => _fbxInternalMaterialReplacement;
     }
 }

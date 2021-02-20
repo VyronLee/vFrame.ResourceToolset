@@ -8,7 +8,7 @@ Material:
   m_PrefabInstance: {fileID: 0}
   m_PrefabAsset: {fileID: 0}
   m_Name: Default-Skybox
-  m_Shader: {fileID: 4800000, guid: b70cd47bd09f0a043a36a724a8324438, type: 3}
+  m_Shader: {fileID: 106, guid: 0000000000000000f000000000000000, type: 0}
   m_ShaderKeywords: _SUNDISK_SIMPLE
   m_LightmapFlags: 5
   m_EnableInstancingVariants: 0
