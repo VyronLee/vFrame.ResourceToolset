@@ -1,18 +1,15 @@
-﻿using System.Collections.Generic;
+﻿using System;
+using System.Collections.Generic;
 using System.Linq;
 using UnityEditor;
 using UnityEngine;
-using vFrame.ResourceToolset.Editor.Const;
-using vFrame.ResourceToolset.Editor.Utils;
 using Object = UnityEngine.Object;
 
-namespace vFrame.ResourceToolset.Editor.Menus
+namespace vFrame.ResourceToolset.Editor.Utils
 {
-    internal static class ReplaceBuiltinAsset
+    public static class AssetProcessorUtils
     {
-        private static readonly string[] ManagedAssetTypes = {".unity", ".mat", ".prefab" };
-
-        private static List<Object> GetSelectedObjects() {
+        public static List<Object> GetSelectedObjects(string[] extensions) {
             var selection = Selection.activeObject;
             var path = AssetDatabase.GetAssetPath(selection);
             if (!AssetDatabase.IsValidFolder(path))
@@ -25,7 +22,7 @@ namespace vFrame.ResourceToolset.Editor.Menus
                 var p = AssetDatabase.GUIDToAssetPath(asset);
                 EditorUtility.DisplayProgressBar("Filtering Assets", p, ++index / assets.Length);
 
-                if (!ManagedAssetTypes.Any(v => p.ToLower().EndsWith(v))) {
+                if (!extensions.Any(v => p.ToLower().EndsWith(v))) {
                     continue;
                 }
                 objects.Add(AssetDatabase.LoadAssetAtPath<Object>(p));
@@ -35,21 +32,18 @@ namespace vFrame.ResourceToolset.Editor.Menus
             return objects;
         }
 
-        [MenuItem(ToolsetConst.AssetsMenuDir + "Replace Builtin Assets")]
-        private static void ReplaceBuiltinAssets() {
-            var objects = GetSelectedObjects();
+        public static void TravelAndProcessSelectedObjects(string[] extensions, string title, Func<Object, bool> processor) {
+            var objects = GetSelectedObjects(extensions);
             var index = 0f;
-            var ret = false;
             var changed = new List<string>();
             try {
                 foreach (var obj in objects) {
                     var path = AssetDatabase.GetAssetPath(obj);
-                    if (EditorUtility.DisplayCancelableProgressBar(
-                        "Replacing Builtin Assets", path, ++index / objects.Count)) {
+                    if (EditorUtility.DisplayCancelableProgressBar(title, path, ++index / objects.Count)) {
                         break;
                     }
 
-                    ret |= BuiltinAssetsReplacementUtils.ReplaceBuiltinAssets(obj);
+                    var ret = processor.Invoke(obj);
                     if (ret) {
                         changed.Add(path);
                     }
@@ -59,8 +53,8 @@ namespace vFrame.ResourceToolset.Editor.Menus
                 EditorUtility.ClearProgressBar();
             }
 
-            if (!ret) {
-                Debug.Log("Replace builtin assets finished, nothing changed.");
+            if (changed.Count <= 0) {
+                Debug.Log($"{title} finished, nothing changed.");
                 return;
             }
 
@@ -69,7 +63,7 @@ namespace vFrame.ResourceToolset.Editor.Menus
 
             Resources.UnloadUnusedAssets();
 
-            Debug.Log("Replace builtin assets finished, asset files list below has been processed: \n"
+            Debug.Log($"{title} finished, asset files list below has been processed: \n"
                 + string.Join("\n", changed.ToArray()));
         }
     }
