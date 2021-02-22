@@ -23,9 +23,12 @@ namespace vFrame.ResourceToolset.Editor.Utils
             if (!importer) {
                 return false;
             }
-            var ret = ReplaceMaterial(importer, newMaterial);
+
+            if (!ReplaceMaterial(importer, newMaterial)) {
+                return false;
+            }
             importer.SaveAndReimport();
-            return ret;
+            return true;
         }
 
         private static bool RemoveExternalObject(ModelImporter importer) {
