@@ -15,7 +15,15 @@ namespace vFrame.ResourceToolset.Editor.Utils
             if (!AssetDatabase.IsValidFolder(path))
                 return new List<Object> {selection};
 
-            var assets = AssetDatabase.FindAssets("t:Object", new[] {path});
+            return GetObjectsInDirectory(path, extensions);
+        }
+
+        public static List<Object> GetObjectsInDirectory(string dir, string[] extensions) {
+            if (string.IsNullOrEmpty(dir)) {
+                throw new ArgumentException("Argument cannot be null", nameof(dir));
+            }
+
+            var assets = AssetDatabase.FindAssets("t:Object", new[] {dir});
             var objects = new List<Object>();
             var index = 0f;
             foreach (var asset in assets) {
@@ -34,6 +42,16 @@ namespace vFrame.ResourceToolset.Editor.Utils
 
         public static void TravelAndProcessSelectedObjects(string[] extensions, string title, Func<Object, bool> processor) {
             var objects = GetSelectedObjects(extensions);
+            TravelAndProcessObjects(objects.ToArray(), title, processor);
+        }
+
+        public static void TravelAndProcessObjectsInDirectory(string dir, string[] extensions, string title,
+            Func<Object, bool> processor) {
+            var objects = GetObjectsInDirectory(dir, extensions);
+            TravelAndProcessObjects(objects.ToArray(), title, processor);
+        }
+
+        private static void TravelAndProcessObjects(IReadOnlyCollection<Object> objects, string title, Func<Object, bool> processor) {
             var index = 0f;
             var changed = new List<string>();
             try {
@@ -62,6 +80,7 @@ namespace vFrame.ResourceToolset.Editor.Utils
             AssetDatabase.Refresh();
 
             Resources.UnloadUnusedAssets();
+            GC.Collect();
 
             Debug.Log($"{title} finished, asset files list below has been processed: \n"
                 + string.Join("\n", changed.ToArray()));

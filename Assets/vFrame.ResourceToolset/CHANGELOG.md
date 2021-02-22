@@ -1,4 +1,8 @@
-﻿## [1.0.2] - 2021-02-22
+﻿## [1.0.3] - 2021-02-22
+### Added
+- Add animation optimization utils.
+
+## [1.0.2] - 2021-02-20
 ### Added
 - Add FBX Internal material replacement utils.
 

@@ -10,7 +10,7 @@ namespace vFrame.ResourceToolset.Editor.Menus
     {
         private static readonly string[] ManagedAssetExtensions = {".fbx"};
 
-        [MenuItem(ToolsetConst.AssetsMenuDir + "Replace FBX Internal Materials")]
+        [MenuItem(ToolsetConst.AssetsMenuDir + "FBX/Replace FBX Internal Materials")]
         private static void ReplaceMaterials() {
             var newMaterial = BuiltinAssetConfig.Instance.FBXInternalMaterialReplacement;
             if (!newMaterial) {
@@ -22,7 +22,7 @@ namespace vFrame.ResourceToolset.Editor.Menus
                 v => FBXInternalMaterialReplacementUtils.ReplaceMaterial(AssetDatabase.GetAssetPath(v), newMaterial));
         }
 
-        [MenuItem(ToolsetConst.AssetsMenuDir + "Remove FBX External Objects")]
+        [MenuItem(ToolsetConst.AssetsMenuDir + "FBX/Remove FBX External Objects")]
         private static void RemoveExternalObjects() {
             AssetProcessorUtils.TravelAndProcessSelectedObjects(ManagedAssetExtensions,
                 "Remove FBX External Objects",
