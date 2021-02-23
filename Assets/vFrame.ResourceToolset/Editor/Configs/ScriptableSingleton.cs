@@ -67,4 +67,10 @@ namespace vFrame.ResourceToolset.Editor.Configs
 
         public string Filepath { get; set; }
     }
+
+    [AttributeUsage(AttributeTargets.Class)]
+    public class AutoCreateDefaultValue : Attribute
+    {
+
+    }
 }
