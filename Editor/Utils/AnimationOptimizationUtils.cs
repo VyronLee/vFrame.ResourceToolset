@@ -1,4 +1,5 @@
 ﻿using System.Collections.Generic;
+using System.Globalization;
 using UnityEditor;
 using UnityEngine;
 
@@ -51,13 +52,25 @@ namespace vFrame.ResourceToolset.Editor.Utils
 
                 foreach (var curveData in curves) {
                     var keyFrames = curveData.curve.keys;
+                    var modified = false;
                     for (var i = 0; i < keyFrames.Length; i++) {
                         var key = keyFrames[i];
-                        key.value = float.Parse(key.value.ToString(floatFormat));
-                        key.inTangent = float.Parse(key.inTangent.ToString(floatFormat));
-                        key.outTangent = float.Parse(key.outTangent.ToString(floatFormat));
+                        var newValue = float.Parse(key.value.ToString(floatFormat));
+                        var newInTangent = float.Parse(key.inTangent.ToString(floatFormat));
+                        var newOutTangent = float.Parse(key.outTangent.ToString(floatFormat));
+
+                        if (newValue.ToString() == key.value.ToString()
+                            || newInTangent.ToString() == key.inTangent.ToString()
+                            || newOutTangent.ToString() == key.outTangent.ToString()
+                        ) {
+                            continue;
+                        }
                         keyFrames[i] = key;
+                        modified = true;
                     }
+
+                    if (!modified)
+                        continue;
 
                     curveData.curve.keys = keyFrames;
                     clip.SetCurve(curveData.path, curveData.type, curveData.propertyName, curveData.curve);
