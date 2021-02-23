@@ -59,12 +59,16 @@ namespace vFrame.ResourceToolset.Editor.Utils
                         var newInTangent = float.Parse(key.inTangent.ToString(floatFormat));
                         var newOutTangent = float.Parse(key.outTangent.ToString(floatFormat));
 
-                        if (newValue.ToString() == key.value.ToString()
-                            || newInTangent.ToString() == key.inTangent.ToString()
-                            || newOutTangent.ToString() == key.outTangent.ToString()
+                        if (newValue.ToString(CultureInfo.CurrentCulture) == key.value.ToString(CultureInfo.CurrentCulture)
+                            && newInTangent.ToString(CultureInfo.CurrentCulture) == key.inTangent.ToString(CultureInfo.CurrentCulture)
+                            && newOutTangent.ToString(CultureInfo.CurrentCulture) == key.outTangent.ToString(CultureInfo.CurrentCulture)
                         ) {
                             continue;
                         }
+
+                        key.value = newValue;
+                        key.inTangent = newInTangent;
+                        key.outTangent = newOutTangent;
                         keyFrames[i] = key;
                         modified = true;
                     }
