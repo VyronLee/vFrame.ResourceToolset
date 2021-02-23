@@ -29,6 +29,7 @@ namespace vFrame.ResourceToolset.Editor.Utils
             if (ret) {
                 EditorUtility.SetDirty(clip);
             }
+
             return ret;
         }
 
@@ -38,26 +39,30 @@ namespace vFrame.ResourceToolset.Editor.Utils
             }
 
             var ret = false;
-            var curves = AnimationUtility.GetCurveBindings(clip);
-            foreach (var curveBinding in curves) {
-                var curve = AnimationUtility.GetEditorCurve(clip, curveBinding);
-                var keys = curve.keys;
-                if (null == keys) {
-                    continue;
+
+            var curveBindings = AnimationUtility.GetCurveBindings(clip);
+            if (curveBindings.Length > 0) {
+                var curves = new AnimationClipCurveData[curveBindings.Length];
+                for (var i = 0; i < curves.Length; ++i) {
+                    curves[i] = new AnimationClipCurveData(curveBindings[i]) {
+                        curve = AnimationUtility.GetEditorCurve(clip, curveBindings[i])
+                    };
                 }
 
-                for (var i = 0; i < keys.Length; i++) {
-                    var key = keys[i];
-                    key.value = float.Parse(key.value.ToString(floatFormat));
-                    key.inTangent = float.Parse(key.inTangent.ToString(floatFormat));
-                    key.outTangent = float.Parse(key.outTangent.ToString(floatFormat));
-                    keys[i] = key;
+                foreach (var curveData in curves) {
+                    var keyFrames = curveData.curve.keys;
+                    for (var i = 0; i < keyFrames.Length; i++) {
+                        var key = keyFrames[i];
+                        key.value = float.Parse(key.value.ToString(floatFormat));
+                        key.inTangent = float.Parse(key.inTangent.ToString(floatFormat));
+                        key.outTangent = float.Parse(key.outTangent.ToString(floatFormat));
+                        keyFrames[i] = key;
+                    }
+
+                    curveData.curve.keys = keyFrames;
+                    clip.SetCurve(curveData.path, curveData.type, curveData.propertyName, curveData.curve);
+                    ret = true;
                 }
-                curve.keys = keys;
-
-                AnimationUtility.SetEditorCurve(clip, curveBinding, curve);
-
-                ret = true;
             }
 
             if (ret) {
