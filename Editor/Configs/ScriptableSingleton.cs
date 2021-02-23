@@ -29,6 +29,7 @@ namespace vFrame.ResourceToolset.Editor.Configs
                 InternalEditorUtility.LoadSerializedFileAndForget(filePath);
             if (_instance != null)
                 return;
+            Debug.LogWarning("ScriptableObject asset load failed: " + filePath);
             CreateInstance<T>().hideFlags = HideFlags.HideAndDontSave;
         }
 
