@@ -51,6 +51,16 @@ namespace vFrame.ResourceToolset.Editor.Utils
             TravelAndProcessObjects(objects.ToArray(), title, processor);
         }
 
+        public static void TravelSelectedObjects(string[] extensions, string title, Action<Object> processor) {
+            var objects = GetSelectedObjects(extensions);
+            TravelObjects(objects.ToArray(), title, processor);
+        }
+
+        public static void TravelObjectsInDirectory(string dir, string[] extensions, string title, Action<Object> processor) {
+            var objects = GetObjectsInDirectory(dir, extensions);
+            TravelObjects(objects.ToArray(), title, processor);
+        }
+
         private static void TravelAndProcessObjects(IReadOnlyCollection<Object> objects, string title, Func<Object, bool> processor) {
             var index = 0f;
             var changed = new List<string>();
@@ -84,6 +94,25 @@ namespace vFrame.ResourceToolset.Editor.Utils
 
             Debug.Log($"{title} finished, asset files list below has been processed: \n"
                 + string.Join("\n", changed.ToArray()));
+        }
+
+        private static void TravelObjects(IReadOnlyCollection<Object> objects, string title, Action<Object> processor) {
+            var index = 0f;
+            try {
+                foreach (var obj in objects) {
+                    var path = AssetDatabase.GetAssetPath(obj);
+                    if (EditorUtility.DisplayCancelableProgressBar(title, path, ++index / objects.Count)) {
+                        break;
+                    }
+
+                    processor.Invoke(obj);
+                }
+            }
+            finally {
+                EditorUtility.ClearProgressBar();
+            }
+
+            Debug.Log($"{title} finished.");
         }
     }
 }
