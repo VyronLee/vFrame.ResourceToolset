@@ -1,4 +1,8 @@
-﻿## [1.0.3] - 2021-02-22
+﻿## [1.0.9] - 2021-03-01
+### Added
+- Add missing reference finder utils.
+
+## [1.0.3] - 2021-02-22
 ### Added
 - Add animation optimization utils.
 
