@@ -18,7 +18,7 @@ namespace vFrame.ResourceToolset.Editor.Menus
             ".asset"
         };
 
-        [MenuItem(ToolsetConst.AssetsMenuDir + "/Find Missing Reference")]
+        [MenuItem(ToolsetConst.AssetsMenuDir + "/Missing Reference/Find Missing Reference")]
         private static void FindMissingReference() {
             var missing = new List<string>();
             void Validate(Object obj) {
@@ -43,6 +43,39 @@ namespace vFrame.ResourceToolset.Editor.Menus
             }
 
             Debug.Log("Find missing reference finished, reference list below are missing: \n"
+                      + string.Join("\n", missing.ToArray()));
+        }
+
+        [MenuItem(ToolsetConst.AssetsMenuDir + "/Missing Reference/Remove Missing Reference")]
+        private static void RemoveMissingReference() {
+            var missing = new List<string>();
+            void Validate(Object obj) {
+                if (MissingReferenceValidationUtils.RemoveMissingReference(obj, out var missingObjects))
+                    return;
+
+                var info = AssetDatabase.GetAssetPath(obj);
+                info += "\n";
+                info = missingObjects.Aggregate(info,
+                    (current, missingObject) => current + "\t" + missingObject + "\n");
+
+                missing.Add(info);
+            }
+
+            AssetDatabase.StartAssetEditing();
+            AssetProcessorUtils.TravelSelectedObjects(ManagedAssetExtensions,
+                "Remove Missing Reference",
+                Validate);
+            AssetDatabase.StopAssetEditing();
+
+            if (missing.Count <= 0) {
+                Debug.Log("Remove missing reference finished, nothing wrong detected.");
+                return;
+            }
+
+            AssetDatabase.SaveAssets();
+            AssetDatabase.Refresh();
+
+            Debug.Log("Remove missing reference finished, reference list below are missing: \n"
                       + string.Join("\n", missing.ToArray()));
         }
     }

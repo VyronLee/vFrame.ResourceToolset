@@ -1,4 +1,8 @@
-﻿## [1.0.9] - 2021-03-01
+﻿## [1.0.10] - 2021-03-09
+### Added
+- Add remove missing reference scripts.
+
+## [1.0.9] - 2021-03-01
 ### Added
 - Add missing reference finder utils.
 
