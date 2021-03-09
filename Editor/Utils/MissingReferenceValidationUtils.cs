@@ -182,6 +182,11 @@ namespace vFrame.ResourceToolset.Editor.Utils
                 ret &= TravelAsset(gameObject, ref missing, $"{propertyParent}./{gameObject.name}", handler);
             }
 
+            if (!ret) {
+                EditorSceneManager.MarkSceneDirty(scene);
+                EditorSceneManager.SaveScene(scene);
+            }
+
             EditorSceneManager.CloseScene(scene, true);
             return ret;
         }
