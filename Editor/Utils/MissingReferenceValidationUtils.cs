@@ -122,6 +122,10 @@ namespace vFrame.ResourceToolset.Editor.Utils
             var ret = true;
             missing = new List<string>();
 
+            if (!obj) {
+                throw new ArgumentNullException(nameof(obj));
+            }
+
             switch (obj) {
                 case GameObject gameObject:
                     ret &= TravelAsset(gameObject, ref missing, "", handler);
@@ -129,16 +133,10 @@ namespace vFrame.ResourceToolset.Editor.Utils
                 case SceneAsset sceneAsset:
                     ret &= TravelAsset(sceneAsset, ref missing, "", handler);
                     break;
-                case AnimationClip _:
-                case AnimatorController _:
-                case Material _:
-                case ScriptableObject _:
+                default:
                     using (var serializedObject = new SerializedObject(obj)) {
                         ret &= handler(serializedObject, ref missing);
                     }
-                    break;
-                default:
-                    Debug.Log($"Unhandled object type: {obj.GetType().FullName}, path: {AssetDatabase.GetAssetPath(obj)}, skip.");
                     break;
             }
 
