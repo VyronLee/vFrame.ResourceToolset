@@ -1,6 +1,7 @@
 using System;
 using System.Collections.Generic;
 using UnityEditor;
+using UnityEditor.Animations;
 using UnityEditor.SceneManagement;
 using UnityEngine;
 using Object = UnityEngine.Object;
@@ -128,8 +129,8 @@ namespace vFrame.ResourceToolset.Editor.Utils
                 case SceneAsset sceneAsset:
                     ret &= TravelAsset(sceneAsset, ref missing, "", handler);
                     break;
-                case Animation _:
-                case Animator _:
+                case AnimationClip _:
+                case AnimatorController _:
                 case Material _:
                 case ScriptableObject _:
                     using (var serializedObject = new SerializedObject(obj)) {
