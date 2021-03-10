@@ -1,3 +1,4 @@
+using System;
 using System.Collections.Generic;
 using UnityEditor;
 using UnityEditor.SceneManagement;
@@ -127,11 +128,16 @@ namespace vFrame.ResourceToolset.Editor.Utils
                 case SceneAsset sceneAsset:
                     ret &= TravelAsset(sceneAsset, ref missing, "", handler);
                     break;
-                default:
+                case Animation _:
+                case Animator _:
+                case Material _:
+                case ScriptableObject _:
                     using (var serializedObject = new SerializedObject(obj)) {
                         ret &= handler(serializedObject, ref missing);
                     }
-
+                    break;
+                default:
+                    Debug.Log($"Unhandled object type: {obj.GetType().FullName}, path: {AssetDatabase.GetAssetPath(obj)}, skip.");
                     break;
             }
 
