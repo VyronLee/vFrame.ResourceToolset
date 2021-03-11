@@ -61,18 +61,15 @@ namespace vFrame.ResourceToolset.Editor.Menus
                 missing.Add(info);
             }
 
-            AssetDatabase.StartAssetEditing();
             AssetProcessorUtils.TravelSelectedObjects(ManagedAssetExtensions,
                 "Remove Missing Reference",
                 Validate);
-            AssetDatabase.StopAssetEditing();
 
             if (missing.Count <= 0) {
                 Debug.Log("Remove missing reference finished, nothing wrong detected.");
                 return;
             }
 
-            AssetDatabase.SaveAssets();
             AssetDatabase.Refresh();
 
             Debug.Log("Remove missing reference finished, reference list below are missing: \n"

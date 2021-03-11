@@ -1,7 +1,6 @@
 using System;
 using System.Collections.Generic;
 using UnityEditor;
-using UnityEditor.Animations;
 using UnityEditor.SceneManagement;
 using UnityEngine;
 using Object = UnityEngine.Object;
@@ -19,7 +18,7 @@ namespace vFrame.ResourceToolset.Editor.Utils
         private static bool ValidateAsset(SerializedObject serializeObject, ref List<string> missing,
             string propertyParent = "") {
             var serializedProperty = serializeObject.GetIterator();
-            if (!serializedProperty.NextVisible(true)) {
+            if (!serializedProperty.Next(true)) {
                 return true;
             }
 
@@ -45,7 +44,7 @@ namespace vFrame.ResourceToolset.Editor.Utils
                     ret = false;
                 }
             }
-            while (serializedProperty.NextVisible(true));
+            while (serializedProperty.Next(true));
 
             return ret;
         }
@@ -55,13 +54,17 @@ namespace vFrame.ResourceToolset.Editor.Utils
 #region Remove Missing Reference
 
         public static bool RemoveMissingReference(Object obj, out List<string> missing) {
-            return TravelAsset(obj, out missing, RemoveMissingReference);
+            var ret = TravelAsset(obj, out missing, RemoveMissingReference);
+            if (!ret) {
+                AssetProcessorUtils.ForceSaveAsset(obj);
+            }
+            return ret;
         }
 
         private static bool RemoveMissingReference(SerializedObject serializeObject, ref List<string> missing,
             string propertyParent = "") {
             var serializedProperty = serializeObject.GetIterator();
-            if (!serializedProperty.NextVisible(true)) {
+            if (!serializedProperty.Next(true)) {
                 return true;
             }
 
@@ -89,10 +92,16 @@ namespace vFrame.ResourceToolset.Editor.Utils
                     ret = false;
                 }
             }
-            while (serializedProperty.NextVisible(true));
+            while (serializedProperty.Next(true));
 
             if (!ret) {
-                serializeObject.ApplyModifiedPropertiesWithoutUndo();
+                if (!serializeObject.hasModifiedProperties) {
+                    Debug.LogError("No properties modified.");
+                }
+
+                if (!serializeObject.ApplyModifiedPropertiesWithoutUndo()) {
+                    Debug.LogError("Apply modified properties failed.");
+                }
             }
             return ret;
         }
@@ -119,7 +128,7 @@ namespace vFrame.ResourceToolset.Editor.Utils
         }
 
         private static bool TravelAsset(Object obj, out List<string> missing, ReferenceHandler handler) {
-            var ret = true;
+            var result = true;
             missing = new List<string>();
 
             if (!obj) {
@@ -127,56 +136,65 @@ namespace vFrame.ResourceToolset.Editor.Utils
             }
 
             switch (obj) {
-                case GameObject gameObject:
-                    ret &= TravelAsset(gameObject, ref missing, "", handler);
+                case GameObject gameObject: {
+                    var ret = TravelAsset(gameObject, ref missing, "", handler);
+                    result &= ret;
+                }
                     break;
-                case SceneAsset sceneAsset:
-                    ret &= TravelAsset(sceneAsset, ref missing, "", handler);
+                case SceneAsset sceneAsset: {
+                    var ret = TravelAsset(sceneAsset, ref missing, "", handler);
+                    result &= ret;
+                }
                     break;
                 default:
                     using (var serializedObject = new SerializedObject(obj)) {
-                        ret &= handler(serializedObject, ref missing);
+                        var ret = handler(serializedObject, ref missing);
+                        result &= ret;
                     }
                     break;
             }
 
-            return ret;
+            return result;
         }
 
         private static bool TravelAsset(GameObject obj, ref List<string> missing, string propertyParent,
             ReferenceHandler handler) {
 
-            var ret = true;
+            var result = true;
 
             // Self
             using (var serializedObject = new SerializedObject(obj)) {
-                ret &= handler(serializedObject, ref missing);
+                var ret = handler(serializedObject, ref missing);
+                result &= ret;
             }
 
             // Components in this game object
             var components = obj.GetComponents<Component>();
             foreach (var component in components) {
                 using (var serializedObject = new SerializedObject(component)) {
-                    ret &= handler(serializedObject, ref missing, $"{propertyParent}");
+                    var ret = handler(serializedObject, ref missing, $"{propertyParent}");
+                    result &= ret;
                 }
             }
 
             // Children game objects
             for (var i = 0; i < obj.transform.childCount; ++i) {
                 var child = obj.transform.GetChild(i).gameObject;
-                ret &= TravelAsset(child, ref missing, $"{propertyParent}./{child.name}", handler);
+                var ret = TravelAsset(child, ref missing, $"{propertyParent}./{child.name}", handler);
+                result &= ret;
             }
 
-            return ret;
+            return result;
         }
 
         private static bool TravelAsset(SceneAsset sceneAsset, ref List<string> missing, string propertyParent,
             ReferenceHandler handler) {
 
-            var ret = true;
+            var result = true;
 
             using (var serializedObject = new SerializedObject(sceneAsset)) {
-                ret &= handler(serializedObject, ref missing);
+                var ret = handler(serializedObject, ref missing);
+                result &= ret;
             }
 
             var scenePath = AssetDatabase.GetAssetPath(sceneAsset);
@@ -184,16 +202,12 @@ namespace vFrame.ResourceToolset.Editor.Utils
 
             var roots = scene.GetRootGameObjects();
             foreach (var gameObject in roots) {
-                ret &= TravelAsset(gameObject, ref missing, $"{propertyParent}./{gameObject.name}", handler);
-            }
-
-            if (!ret) {
-                EditorSceneManager.MarkSceneDirty(scene);
-                EditorSceneManager.SaveScene(scene);
+                var ret = TravelAsset(gameObject, ref missing, $"{propertyParent}./{gameObject.name}", handler);
+                result &= ret;
             }
 
             EditorSceneManager.CloseScene(scene, true);
-            return ret;
+            return result;
         }
     }
 }
