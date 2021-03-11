@@ -34,7 +34,13 @@ namespace vFrame.ResourceToolset.Editor.Utils
                 if (!extensions.Any(v => p.ToLower().EndsWith(v))) {
                     continue;
                 }
-                objects.Add(AssetDatabase.LoadAssetAtPath<Object>(p));
+
+                var obj = AssetDatabase.LoadAssetAtPath<Object>(p);
+                if (!obj) {
+                    Debug.LogError("Load asset at path failed: " + p);
+                    continue;
+                }
+                objects.Add(obj);
             }
 
             EditorUtility.ClearProgressBar();
@@ -67,6 +73,10 @@ namespace vFrame.ResourceToolset.Editor.Utils
             var changed = new List<string>();
             try {
                 foreach (var obj in objects) {
+                    if (!obj) {
+                        continue;
+                    }
+
                     var path = AssetDatabase.GetAssetPath(obj);
                     if (EditorUtility.DisplayCancelableProgressBar(title, path, ++index / objects.Count)) {
                         break;
@@ -101,6 +111,10 @@ namespace vFrame.ResourceToolset.Editor.Utils
             var index = 0f;
             try {
                 foreach (var obj in objects) {
+                    if (!obj) {
+                        continue;
+                    }
+
                     var path = AssetDatabase.GetAssetPath(obj);
                     if (EditorUtility.DisplayCancelableProgressBar(title, path, ++index / objects.Count)) {
                         break;
