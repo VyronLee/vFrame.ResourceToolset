@@ -2,6 +2,7 @@
 using System.Collections.Generic;
 using System.Linq;
 using UnityEditor;
+using UnityEditor.SceneManagement;
 using UnityEngine;
 using Object = UnityEngine.Object;
 
@@ -113,6 +114,28 @@ namespace vFrame.ResourceToolset.Editor.Utils
             }
 
             Debug.Log($"{title} finished.");
+        }
+
+        public static void ForceSaveAsset(Object asset) {
+            switch (asset) {
+                case GameObject prefab: {
+                    PrefabUtility.SavePrefabAsset(prefab);
+                    break;
+                }
+                case SceneAsset sceneAsset: {
+                    var scenePath = AssetDatabase.GetAssetPath(sceneAsset);
+                    var scene = EditorSceneManager.OpenScene(scenePath, OpenSceneMode.Additive);
+                    EditorSceneManager.MarkSceneDirty(scene);
+                    EditorSceneManager.SaveScene(scene);
+                    EditorSceneManager.CloseScene(scene, true);
+                    break;
+                }
+                default: {
+                    EditorUtility.SetDirty(asset);
+                    AssetDatabase.SaveAssets();
+                    break;
+                }
+            }
         }
     }
 }
