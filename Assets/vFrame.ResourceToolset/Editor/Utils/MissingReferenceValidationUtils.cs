@@ -12,7 +12,11 @@ namespace vFrame.ResourceToolset.Editor.Utils
 #region Validate Missing Reference
 
         public static bool ValidateAsset(Object obj, out List<string> missing) {
-            return TravelAsset(obj, out missing, ValidateAsset);
+            if (obj)
+                return TravelAsset(obj, out missing, ValidateAsset);
+
+            missing = new List<string>();
+            return true;
         }
 
         private static bool ValidateAsset(SerializedObject serializeObject, ref List<string> missing,
@@ -47,6 +51,18 @@ namespace vFrame.ResourceToolset.Editor.Utils
             while (serializedProperty.Next(true));
 
             return ret;
+        }
+
+        public static bool ValidateActiveScene(out List<string> missing) {
+            var result = true;
+            missing = new List<string>();
+            var scene = EditorSceneManager.GetActiveScene();
+            var roots = scene.GetRootGameObjects();
+            foreach (var gameObject in roots) {
+                var ret = TravelAsset(gameObject, ref missing, "", ValidateAsset);
+                result &= ret;
+            }
+            return result;
         }
 
 #endregion
@@ -160,6 +176,10 @@ namespace vFrame.ResourceToolset.Editor.Utils
         private static bool TravelAsset(GameObject obj, ref List<string> missing, string propertyParent,
             ReferenceHandler handler) {
 
+            if (!obj) {
+                return true;
+            }
+
             var result = true;
 
             // Self
@@ -189,6 +209,10 @@ namespace vFrame.ResourceToolset.Editor.Utils
 
         private static bool TravelAsset(SceneAsset sceneAsset, ref List<string> missing, string propertyParent,
             ReferenceHandler handler) {
+
+            if (!sceneAsset) {
+                return true;
+            }
 
             var result = true;
 
