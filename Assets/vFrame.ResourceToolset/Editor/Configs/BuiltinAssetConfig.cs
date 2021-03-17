@@ -27,6 +27,9 @@ namespace vFrame.ResourceToolset.Editor.Configs
         [AssetsOnly]
         private Material _fbxInternalMaterialReplacement;
 
+        [SerializeField]
+        private bool _autoReplaceFBXInternalMaterialOnImport;
+
         public string BuiltinReplacementMaterialsDir {
             get {
                 if (!_builtinReplacementMaterialsDir) {
@@ -48,5 +51,7 @@ namespace vFrame.ResourceToolset.Editor.Configs
         }
 
         public Material FBXInternalMaterialReplacement => _fbxInternalMaterialReplacement;
+
+        public bool AutoReplaceFBXInternalMaterialOnImport => _autoReplaceFBXInternalMaterialOnImport;
     }
 }
