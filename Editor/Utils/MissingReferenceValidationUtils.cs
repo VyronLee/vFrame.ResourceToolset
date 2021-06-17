@@ -191,6 +191,11 @@ namespace vFrame.ResourceToolset.Editor.Utils
             // Components in this game object
             var components = obj.GetComponents<Component>();
             foreach (var component in components) {
+                if (!component) {
+                    missing.Add(propertyParent);
+                    result = false;
+                    continue;
+                }
                 using (var serializedObject = new SerializedObject(component)) {
                     var ret = handler(serializedObject, ref missing, $"{propertyParent}");
                     result &= ret;
