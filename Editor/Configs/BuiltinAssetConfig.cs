@@ -15,6 +15,8 @@ namespace vFrame.ResourceToolset.Editor.Configs
         FilePathAttribute.Location.ProjectFolder)]
     internal class BuiltinAssetConfig : ScriptableSingleton<BuiltinAssetConfig>
     {
+        #pragma warning disable CS0649
+
         [SerializeField]
         [AssetsOnly]
         private Object _builtinReplacementMaterialsDir;
@@ -29,6 +31,8 @@ namespace vFrame.ResourceToolset.Editor.Configs
 
         [SerializeField]
         private bool _autoReplaceFBXInternalMaterialOnImport;
+
+        #pragma warning restore CS0649
 
         public string BuiltinReplacementMaterialsDir {
             get {
