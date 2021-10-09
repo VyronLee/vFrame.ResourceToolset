@@ -22,7 +22,7 @@ namespace vFrame.ResourceToolset.Editor.Utils
             "*.controller",
         };
 
-        public static void RegenerateGuidsInDirectory(string targetDirectory,
+        public static bool RegenerateGuidsInDirectory(string targetDirectory,
             string referencesDirectory,
             string[] fileExtensions = null)
         {
@@ -36,14 +36,14 @@ namespace vFrame.ResourceToolset.Editor.Utils
             if (Path.IsPathRooted(targetDirectory)) {
                 if (!targetDirectory.StartsWith(Application.dataPath)) {
                     Debug.LogError("Only directory in 'Application.dataPath' supported!");
-                    return;
+                    return false;
                 }
             }
 
             if (Path.IsPathRooted(referencesDirectory)) {
                 if (!referencesDirectory.StartsWith(Application.dataPath)) {
                     Debug.LogError("Only directory in 'Application.dataPath' supported!");
-                    return;
+                    return false;
                 }
             }
 
@@ -52,10 +52,10 @@ namespace vFrame.ResourceToolset.Editor.Utils
 
             var targetFilePaths = GetAllFiles(targetDirectory, fileExtensions);
             var referenceFilePaths = GetAllFiles(referencesDirectory, fileExtensions);
-            RegenerateGuidsOfFiles(targetFilePaths, referenceFilePaths);
+            return RegenerateGuidsOfFiles(targetFilePaths, referenceFilePaths);
         }
 
-        public static void RegenerateGuidsOfFiles(IEnumerable<string> targetFilePaths,
+        public static bool RegenerateGuidsOfFiles(IEnumerable<string> targetFilePaths,
             string referencesDirectory,
             string[] fileExtensions = null)
         {
@@ -69,7 +69,7 @@ namespace vFrame.ResourceToolset.Editor.Utils
             if (Path.IsPathRooted(referencesDirectory)) {
                 if (!referencesDirectory.StartsWith(Application.dataPath)) {
                     Debug.LogError("Only directory in 'Application.dataPath' supported!");
-                    return;
+                    return false;
                 }
             }
 
@@ -77,10 +77,10 @@ namespace vFrame.ResourceToolset.Editor.Utils
                 fileExtensions = DefaultFileExtensions;
 
             var referenceFilePaths = GetAllFiles(referencesDirectory, fileExtensions);
-            RegenerateGuidsOfFiles(targetFilePaths, referenceFilePaths);
+            return RegenerateGuidsOfFiles(targetFilePaths, referenceFilePaths);
         }
 
-        public static void RegenerateGuidsOfFiles(IEnumerable<string> targetFilePaths, IEnumerable<string> referenceFilePaths) {
+        public static bool RegenerateGuidsOfFiles(IEnumerable<string> targetFilePaths, IEnumerable<string> referenceFilePaths) {
             if (null == targetFilePaths) {
                 throw new ArgumentNullException(nameof(targetFilePaths));
             }
@@ -89,14 +89,14 @@ namespace vFrame.ResourceToolset.Editor.Utils
             }
             try {
                 var regenerator = new UnityGuidRegenerator(referenceFilePaths, targetFilePaths);
-                regenerator.RegenerateGuids();
+                return regenerator.RegenerateGuids();
             }
             finally {
                 EditorUtility.ClearProgressBar();
             }
         }
 
-        public static void RegenerateGuidsOfObjects(IEnumerable<Object> targetObjects, IEnumerable<Object> referencesObjects) {
+        public static bool RegenerateGuidsOfObjects(IEnumerable<Object> targetObjects, IEnumerable<Object> referencesObjects) {
             if (null == targetObjects) {
                 throw new ArgumentNullException(nameof(targetObjects));
             }
@@ -118,17 +118,7 @@ namespace vFrame.ResourceToolset.Editor.Utils
                 referenceFilePaths.Add(path + ".meta");
             }
 
-            RegenerateGuidsOfFiles(targetFilePaths, referenceFilePaths);
-        }
-
-        internal static string MakeRelativePath(this string fromPath, string toPath) {
-            var fromUri = new Uri(fromPath);
-            var toUri = new Uri(toPath);
-
-            var relativeUri = toUri.MakeRelativeUri(fromUri);
-            var relativePath = Uri.UnescapeDataString(relativeUri.ToString());
-
-            return relativePath;
+            return RegenerateGuidsOfFiles(targetFilePaths, referenceFilePaths);
         }
 
         internal static List<string> GetAllFiles(string directory, string[] fileExtensions) {
@@ -154,8 +144,7 @@ namespace vFrame.ResourceToolset.Editor.Utils
             _regenerateGuidFilesPaths = regenerateAssetsDirectory.ToList();
         }
 
-        public void RegenerateGuids() {
-
+        public bool RegenerateGuids() {
             // Create dictionary to hold old-to-new GUID map
             var guidOldToNewMap = new Dictionary<string, string>();
             var guidsInFileMap = new Dictionary<string, List<string>>();
@@ -203,6 +192,7 @@ namespace vFrame.ResourceToolset.Editor.Utils
             // Traverse the files again and replace the old GUIDs
             counter = -1;
             var guidsInFileMapKeysCount = guidsInFileMap.Keys.Count;
+            var modified = false;
             foreach (var filePath in guidsInFileMap.Keys) {
                 EditorUtility.DisplayProgressBar("Regenerating GUIDs", filePath,
                     counter / (float) guidsInFileMapKeysCount);
@@ -223,12 +213,14 @@ namespace vFrame.ResourceToolset.Editor.Utils
 
                     contents = contents.Replace("guid: " + oldGuid, "guid: " + newGuid);
                     Debug.Log($"Replace guid: {oldGuid} with: {newGuid} in file: {filePath}");
+                    modified = true;
                 }
 
                 File.WriteAllText(filePath, contents);
             }
 
             EditorUtility.ClearProgressBar();
+            return modified;
         }
 
         private static IEnumerable<string> GetGuids(string text) {
