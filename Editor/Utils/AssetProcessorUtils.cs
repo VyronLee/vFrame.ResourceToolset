@@ -161,5 +161,16 @@ namespace vFrame.ResourceToolset.Editor.Utils
                 }
             }
         }
+
+        internal static string MakeRelativePath(this string fromPath, string toPath) {
+            var fromUri = new Uri(fromPath);
+            var toUri = new Uri(toPath);
+
+            var relativeUri = toUri.MakeRelativeUri(fromUri);
+            var relativePath = Uri.UnescapeDataString(relativeUri.ToString());
+
+            return relativePath;
+        }
+
     }
 }
