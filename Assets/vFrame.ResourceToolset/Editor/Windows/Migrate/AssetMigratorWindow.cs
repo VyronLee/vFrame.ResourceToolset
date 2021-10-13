@@ -37,6 +37,8 @@ namespace vFrame.ResourceToolset.Editor.Windows.Migrate
         private const string Group2_SubGroup5 = "Dependencies/GroupBy";
         private const string Group2_SubGroup5_Sub1 = "Dependencies/GroupBy/1";
 
+        private const string DeleteOperationPrompt = "Please make a backup before processing DELETE, continue?";
+
         private enum GroupType
         {
             None,
@@ -93,7 +95,7 @@ namespace vFrame.ResourceToolset.Editor.Windows.Migrate
         [TitleGroup(Group2_SubGroup5)]
         [HorizontalGroup(Group2_SubGroup5_Sub1, Width = 250)]
         [LabelWidth(80)]
-        private GroupType _groupType;
+        private GroupType _groupType = GroupType.None;
 
         [ShowInInspector]
         [TitleGroup(Group2)]
@@ -122,24 +124,6 @@ namespace vFrame.ResourceToolset.Editor.Windows.Migrate
         private string _dependenciesTips = "";
 
         private bool _searched = true;
-
-        [PropertySpace]
-        [TitleGroup(Group2)]
-        [TitleGroup(Group2_SubGroup3)]
-        [HorizontalGroup(Group2_SubGroup3_Sub1, Width = 100)]
-        [Button(ButtonSizes.Small)]
-        private void SelectAll() {
-            _dependencies.ForEach(dependency => dependency.Assets.ForEach(asset => asset.Selected = true));
-        }
-
-        [PropertySpace]
-        [TitleGroup(Group2)]
-        [TitleGroup(Group2_SubGroup3)]
-        [HorizontalGroup(Group2_SubGroup3_Sub1, Width = 100)]
-        [Button(ButtonSizes.Small)]
-        private void UnselectAll() {
-            _dependencies.ForEach(dependency => dependency.Assets.ForEach(asset => asset.Selected = false));
-        }
 
 #pragma warning restore CS0414, CS0469
 
@@ -175,11 +159,32 @@ namespace vFrame.ResourceToolset.Editor.Windows.Migrate
         [TitleGroup(Group2_SubGroup4)]
         [Button(ButtonSizes.Medium)]
         private void MoveSelectedDependencies() {
-            var selected = from assetGroup in _dependencies
+            var selected = GetSelectedDependencies();
+            OnAssetsMoveClick(selected);
+        }
+
+        [TitleGroup(Group2)]
+        [TitleGroup(Group2_SubGroup4)]
+        [Button(ButtonSizes.Medium)]
+        private void ReplaceSelectedDependencies() {
+            var selected = GetSelectedDependencies();
+            OnAssetsReplaceClick(selected);
+        }
+
+        [TitleGroup(Group2)]
+        [TitleGroup(Group2_SubGroup4)]
+        [Button(ButtonSizes.Medium)]
+        private void DeleteSelectedDependencies() {
+            var selected = GetSelectedDependencies();
+            OnAssetsDeleteClick(selected);
+        }
+
+        private IEnumerable<DependencyAssetListItem> GetSelectedDependencies() {
+            return
+                from assetGroup in _dependencies
                 from asset in assetGroup.Assets
                 where asset.Selected
-                select asset.Asset;
-            OnAssetsMoveClick(selected);
+                select asset;
         }
 
         // ==========================================================
@@ -244,6 +249,7 @@ namespace vFrame.ResourceToolset.Editor.Windows.Migrate
                             asset.OnMoveClick.AddListener(OnAssetMoveClick);
                             asset.OnDuplicateClick.AddListener(OnAssetDuplicateClick);
                             asset.OnReplaceClick.AddListener(OnAssetReplaceClick);
+                            asset.OnDeleteClick.AddListener(OnAssetDeleteClick);
                             asset.References.Add(obj);
                             ret[dependency] = asset;
                         }
@@ -329,7 +335,7 @@ namespace vFrame.ResourceToolset.Editor.Windows.Migrate
             ShowNotification("Move failed.");
         }
 
-        private void OnAssetsMoveClick(IEnumerable<Object> assets) {
+        private void OnAssetsMoveClick(IEnumerable<DependencyAssetListItem> assets) {
             var destDir = EditorUtility.OpenFolderPanel("Move To", Application.dataPath, "");
             if (string.IsNullOrEmpty(destDir)) {
                 return;
@@ -340,7 +346,7 @@ namespace vFrame.ResourceToolset.Editor.Windows.Migrate
             var failed = new List<string>();
             var moved = new List<string>();
             foreach (var asset in assets) {
-                var sourcePath = AssetDatabase.GetAssetPath(asset);
+                var sourcePath = asset.Path;
                 var sourceName = Path.GetFileName(sourcePath);
                 if (moved.Contains(sourcePath)) {
                     continue;
@@ -352,7 +358,7 @@ namespace vFrame.ResourceToolset.Editor.Windows.Migrate
                     moved.Add(sourcePath);
                     continue;
                 }
-                failed.Add(asset.name);
+                failed.Add(asset.Asset.name);
                 Debug.LogError("Move file failed: " + ret);
             }
 
@@ -427,6 +433,81 @@ namespace vFrame.ResourceToolset.Editor.Windows.Migrate
             }
 
             AssetSelector.OpenSelector(target.Asset, OnSelectionConfirmed);
+        }
+
+        private void OnAssetsReplaceClick(IEnumerable<DependencyAssetListItem> assets) {
+            var listItems = assets.ToList();
+            if (!listItems.Any()) {
+                return;
+            }
+
+            var first = listItems.FirstOrDefault();
+            if (first == null) {
+                return;
+            }
+            var firstType = first.Asset.GetType();
+            if (listItems.Any(v => v.Asset.GetType() != firstType)) {
+                ShowNotification("All assets to be replaced must be the same type!");
+                return;
+            }
+
+            void OnSelectionConfirmed<T>(IEnumerable<T> selection) where T: Object {
+                var firstSelection = selection.FirstOrDefault();
+                if (!firstSelection) {
+                    return;
+                }
+
+                var succeed = new List<string>();
+                foreach (var asset in listItems.Where(v => v.Asset != firstSelection)) {
+                    if (!AssetMigrationUtils.ReplaceAsset(_realObjects.ToArray(), asset.Asset, firstSelection)) {
+                        continue;
+                    }
+                    succeed.Add(asset.Path);
+                }
+
+                if (succeed.Count > 0) {
+                    if (EditorUtility.DisplayDialog("Tips", "Replace Asset Succeed.", "Refresh Dependencies", "Cancel")) {
+                        SearchAndGroupDependenciesInternal();
+                    }
+                    ShowNotification("All assets successfully replaced!");
+                }
+                else {
+                    ShowNotification("Nothing changed.");
+                }
+                AssetDatabase.Refresh();
+            }
+
+            AssetSelector.OpenSelector(first.Asset, OnSelectionConfirmed);
+        }
+
+        private void OnAssetDeleteClick(DependencyAssetListItem target) {
+            if (!EditorUtility.DisplayDialog("Warning", DeleteOperationPrompt, "OK", "Cancel")) {
+               return;
+            }
+
+            if (AssetDatabase.DeleteAsset(target.Path)) {
+                ShowNotification("Asset successfully deleted.");
+                return;
+            }
+            ShowNotification("Asset delete failed.");
+        }
+
+        private void OnAssetsDeleteClick(IEnumerable<DependencyAssetListItem> targets) {
+            if (!EditorUtility.DisplayDialog("Warning", DeleteOperationPrompt, "OK", "Cancel")) {
+               return;
+            }
+
+            var result = true;
+            foreach (var target in targets) {
+                var ret = AssetDatabase.DeleteAsset(target.Path);
+                result &= ret;
+            }
+
+            if (result) {
+                ShowNotification("Assets successfully deleted.");
+                return;
+            }
+            ShowNotification("Some assets delete failed.");
         }
     }
 }

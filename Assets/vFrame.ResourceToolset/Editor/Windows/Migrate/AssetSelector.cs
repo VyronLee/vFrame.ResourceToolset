@@ -55,75 +55,82 @@ namespace vFrame.ResourceToolset.Editor.Windows.Migrate
 
     internal static class AssetSelector {
         public static void OpenSelector(Object target, Action<IEnumerable<Object>> onSelectionConfirmed) {
+            var focus = EditorWindow.focusedWindow.position;
+            var position = new Rect {
+                x = focus.width / 2 - 300,
+                y = 50,
+                width = 600,
+            };
+
             switch (target) {
                 case GameObject gameObject: {
                     var selector = new GameObjectSelector();
                     selector.SelectionConfirmed += onSelectionConfirmed;
                     selector.SetSelection(gameObject);
-                    selector.ShowInPopup();
+                    selector.ShowInPopup(position);
                     break;
                 }
                 case SceneAsset sceneAsset: {
                     var selector = new SceneAssetSelector();
                     selector.SelectionConfirmed += onSelectionConfirmed;
                     selector.SetSelection(sceneAsset);
-                    selector.ShowInPopup();
+                    selector.ShowInPopup(position);
                     break;
                 }
                 case Material material: {
                     var selector = new MaterialSelector();
                     selector.SelectionConfirmed += onSelectionConfirmed;
                     selector.SetSelection(material);
-                    selector.ShowInPopup();
+                    selector.ShowInPopup(position);
                     break;
                 }
                 case Texture texture: {
                     var selector = new TextureSelector();
                     selector.SelectionConfirmed += onSelectionConfirmed;
                     selector.SetSelection(texture);
-                    selector.ShowInPopup();
+                    selector.ShowInPopup(position);
                     break;
                 }
                 case Sprite sprite: {
                     var selector = new SpriteSelector();
                     selector.SelectionConfirmed += onSelectionConfirmed;
                     selector.SetSelection(sprite);
-                    selector.ShowInPopup();
+                    selector.ShowInPopup(position);
                     break;
                 }
                 case AnimationClip animationClip: {
                     var selector = new AnimationClipSelector();
                     selector.SelectionConfirmed += onSelectionConfirmed;
                     selector.SetSelection(animationClip);
-                    selector.ShowInPopup();
+                    selector.ShowInPopup(position);
                     break;
                 }
                 case AnimatorController animatorController: {
                     var selector = new AnimatorControllerSelector();
                     selector.SelectionConfirmed += onSelectionConfirmed;
                     selector.SetSelection(animatorController);
-                    selector.ShowInPopup();
+                    selector.ShowInPopup(position);
                     break;
                 }
                 case AudioClip audioClip: {
                     var selector = new AudioClipSelector();
                     selector.SelectionConfirmed += onSelectionConfirmed;
                     selector.SetSelection(audioClip);
-                    selector.ShowInPopup();
+                    selector.ShowInPopup(position);
                     break;
                 }
                 case MonoScript monoScript: {
                     var selector = new MonoScriptSelector();
                     selector.SelectionConfirmed += onSelectionConfirmed;
                     selector.SetSelection(monoScript);
-                    selector.ShowInPopup();
+                    selector.ShowInPopup(position);
                     break;
                 }
                 case ScriptableObject scriptableObject: {
                     var selector = new ScriptableObjectSelector();
                     selector.SelectionConfirmed += onSelectionConfirmed;
                     selector.SetSelection(scriptableObject);
-                    selector.ShowInPopup();
+                    selector.ShowInPopup(position);
                     break;
                 }
             }
