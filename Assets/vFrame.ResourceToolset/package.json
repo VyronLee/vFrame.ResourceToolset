@@ -1,6 +1,6 @@
 {
   "name": "com.vyronlee.vframe.resourcetoolset",
-  "version": "1.0.21",
+  "version": "1.0.22",
   "displayName": "vFrame Resource Toolset",
   "description": "A bundle of resource tools to optimize your game assets!",
   "unity": "2018.4",

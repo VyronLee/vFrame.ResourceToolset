@@ -1,4 +1,10 @@
-﻿## [1.0.10] - 2021-03-09
+﻿## [1.0.11-22] - 2021-10-13
+### Added
+- Add migration tools.
+- Add guid regenerator tools.
+- Add information dumper.
+ 
+## [1.0.10] - 2021-03-09
 ### Added
 - Add remove missing reference scripts.
 
