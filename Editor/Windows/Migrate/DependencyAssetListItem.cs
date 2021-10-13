@@ -35,7 +35,7 @@ namespace vFrame.ResourceToolset.Editor.Windows.Migrate
 
         [Button("Move")]
         [VerticalGroup("1")]
-        [HorizontalGroup("1/2", MinWidth = 400), HorizontalGroup("1/2/Operation")]
+        [HorizontalGroup("1/2", MinWidth = 500), HorizontalGroup("1/2/Operation")]
         private void OnMoveButtonClick() {
             OnMoveClick?.Invoke(this);
         }
@@ -52,6 +52,13 @@ namespace vFrame.ResourceToolset.Editor.Windows.Migrate
         [HorizontalGroup("1/2"), HorizontalGroup("1/2/Operation")]
         private void OnReplaceButtonClick() {
             OnReplaceClick?.Invoke(this);
+        }
+
+        [Button("Delete")]
+        [VerticalGroup("1")]
+        [HorizontalGroup("1/2"), HorizontalGroup("1/2/Operation")]
+        private void OnDeleteButtonClick() {
+            OnDeleteClick?.Invoke(this);
         }
 
         [Button("$ShowReferenceButtonState")]
@@ -119,6 +126,7 @@ namespace vFrame.ResourceToolset.Editor.Windows.Migrate
         public AssetOperationEvent OnMoveClick { get; private set; } = new AssetOperationEvent();
         public AssetOperationEvent OnDuplicateClick { get; private set; } = new AssetOperationEvent();
         public AssetOperationEvent OnReplaceClick { get; private set; } = new AssetOperationEvent();
+        public AssetOperationEvent OnDeleteClick { get; private set; } = new AssetOperationEvent();
 
         public override string ToString() {
             return $"Asset: {_asset}, Path: {_path}, Guid: {_guid}, FileID: {_fileId}";
