@@ -1,8 +1,10 @@
 ﻿using System;
+using System.Collections;
 using System.Collections.Generic;
 using System.Linq;
 using Sirenix.OdinInspector;
 using Sirenix.OdinInspector.Editor;
+using Unity.EditorCoroutines.Editor;
 using UnityEditor;
 using UnityEditor.Animations;
 using UnityEngine;
@@ -10,22 +12,21 @@ using Object = UnityEngine.Object;
 
 namespace vFrame.ResourceToolset.Editor.Windows.Migrate
 {
-    public abstract class AssetSelector<T> : OdinSelector<T> where T: Object
+    internal abstract class AssetSelector<T> : OdinSelector<T> where T: Object
     {
         protected override void BuildSelectionTree(OdinMenuTree tree)
         {
             tree.Config.DrawSearchToolbar = true;
             tree.Selection.SupportsMultiSelect = false;
+        }
 
-            EditorUtility.DisplayProgressBar("Filtering", "", 0);
+        internal void RebuildSelectionTree() {
             var items = AssetDatabase.FindAssets($"t:{typeof(T).Name}")
                 .Select(AssetDatabase.GUIDToAssetPath)
                 .SelectMany(AssetDatabase.LoadAllAssetsAtPath)
                 .Where(v => v is T)
                 .Where(ApplyFilter);
-            EditorUtility.ClearProgressBar();
-
-            tree.AddRange(items, BuildItemName);
+            SelectionTree.AddRange(items, BuildItemName);
         }
 
         private string BuildItemName(Object v) {
@@ -54,102 +55,135 @@ namespace vFrame.ResourceToolset.Editor.Windows.Migrate
     }
 
     internal static class AssetSelector {
-        public static void OpenSelector(Object target, Action<IEnumerable<Object>> onSelectionConfirmed) {
-            var focus = EditorWindow.focusedWindow.position;
+        public static IEnumerator OpenSelector(Object target, Action<IEnumerable<Object>> onSelectionConfirmed, EditorWindow focus) {
+            var windowRect = focus.position;
             var position = new Rect {
-                x = focus.width / 2 - 300,
+                x = windowRect.width / 2 - 300,
                 y = 50,
                 width = 600,
             };
 
+            focus.ShowNotification(new GUIContent("Building Selector, Please Wait.."));
+
+            IEnumerator DelayCallback(IEnumerable<Object> enumerable) {
+                yield return null;
+                onSelectionConfirmed?.Invoke(enumerable);
+            }
+
+            void OnConfirmWrap(IEnumerable<Object> ret) {
+                EditorCoroutineUtility.StartCoroutine(DelayCallback(ret), focus);
+            }
+
             switch (target) {
                 case GameObject gameObject: {
                     var selector = new GameObjectSelector();
-                    selector.SelectionConfirmed += onSelectionConfirmed;
+                    selector.SelectionConfirmed += OnConfirmWrap;
                     selector.SetSelection(gameObject);
                     selector.ShowInPopup(position);
+                    yield return null;
+                    selector.RebuildSelectionTree();
                     break;
                 }
                 case SceneAsset sceneAsset: {
                     var selector = new SceneAssetSelector();
-                    selector.SelectionConfirmed += onSelectionConfirmed;
+                    selector.SelectionConfirmed += OnConfirmWrap;
                     selector.SetSelection(sceneAsset);
                     selector.ShowInPopup(position);
+                    yield return null;
+                    selector.RebuildSelectionTree();
                     break;
                 }
                 case Material material: {
                     var selector = new MaterialSelector();
-                    selector.SelectionConfirmed += onSelectionConfirmed;
+                    selector.SelectionConfirmed += OnConfirmWrap;
                     selector.SetSelection(material);
                     selector.ShowInPopup(position);
+                    yield return null;
+                    selector.RebuildSelectionTree();
                     break;
                 }
                 case Texture texture: {
                     var selector = new TextureSelector();
-                    selector.SelectionConfirmed += onSelectionConfirmed;
+                    selector.SelectionConfirmed += OnConfirmWrap;
                     selector.SetSelection(texture);
                     selector.ShowInPopup(position);
+                    yield return null;
+                    selector.RebuildSelectionTree();
                     break;
                 }
                 case Sprite sprite: {
                     var selector = new SpriteSelector();
-                    selector.SelectionConfirmed += onSelectionConfirmed;
+                    selector.SelectionConfirmed += OnConfirmWrap;
                     selector.SetSelection(sprite);
                     selector.ShowInPopup(position);
+                    yield return null;
+                    selector.RebuildSelectionTree();
                     break;
                 }
                 case AnimationClip animationClip: {
                     var selector = new AnimationClipSelector();
-                    selector.SelectionConfirmed += onSelectionConfirmed;
+                    selector.SelectionConfirmed += OnConfirmWrap;
                     selector.SetSelection(animationClip);
                     selector.ShowInPopup(position);
+                    yield return null;
+                    selector.RebuildSelectionTree();
                     break;
                 }
                 case AnimatorController animatorController: {
                     var selector = new AnimatorControllerSelector();
-                    selector.SelectionConfirmed += onSelectionConfirmed;
+                    selector.SelectionConfirmed += OnConfirmWrap;
                     selector.SetSelection(animatorController);
                     selector.ShowInPopup(position);
+                    yield return null;
+                    selector.RebuildSelectionTree();
                     break;
                 }
                 case AudioClip audioClip: {
                     var selector = new AudioClipSelector();
-                    selector.SelectionConfirmed += onSelectionConfirmed;
+                    selector.SelectionConfirmed += OnConfirmWrap;
                     selector.SetSelection(audioClip);
                     selector.ShowInPopup(position);
+                    yield return null;
+                    selector.RebuildSelectionTree();
                     break;
                 }
                 case MonoScript monoScript: {
                     var selector = new MonoScriptSelector();
-                    selector.SelectionConfirmed += onSelectionConfirmed;
+                    selector.SelectionConfirmed += OnConfirmWrap;
                     selector.SetSelection(monoScript);
                     selector.ShowInPopup(position);
+                    yield return null;
+                    selector.RebuildSelectionTree();
                     break;
                 }
                 case ScriptableObject scriptableObject: {
                     var selector = new ScriptableObjectSelector();
-                    selector.SelectionConfirmed += onSelectionConfirmed;
+                    selector.SelectionConfirmed += OnConfirmWrap;
                     selector.SetSelection(scriptableObject);
                     selector.ShowInPopup(position);
+                    yield return null;
+                    selector.RebuildSelectionTree();
                     break;
                 }
             }
+
+            focus.RemoveNotification();
         }
     }
 
-    public class SpriteSelector : AssetSelector<Sprite> {}
-    public class TextureSelector : AssetSelector<Texture> {}
-    public class AudioClipSelector : AssetSelector<AudioClip> {}
-    public class AnimationClipSelector : AssetSelector<AnimationClip> {}
-    public class AnimatorControllerSelector : AssetSelector<AnimatorController> {}
-    public class GameObjectSelector : AssetSelector<GameObject>
+    internal class SpriteSelector : AssetSelector<Sprite> {}
+    internal class TextureSelector : AssetSelector<Texture> {}
+    internal class AudioClipSelector : AssetSelector<AudioClip> {}
+    internal class AnimationClipSelector : AssetSelector<AnimationClip> {}
+    internal class AnimatorControllerSelector : AssetSelector<AnimatorController> {}
+    internal class GameObjectSelector : AssetSelector<GameObject>
     {
         protected override bool ApplyFilter(Object val) {
             return AssetDatabase.IsMainAsset(val);
         }
     }
-    public class SceneAssetSelector : AssetSelector<SceneAsset> {}
-    public class MaterialSelector : AssetSelector<Material> {}
-    public class MonoScriptSelector : AssetSelector<MonoScript> {}
-    public class ScriptableObjectSelector : AssetSelector<ScriptableObject> {}
+    internal class SceneAssetSelector : AssetSelector<SceneAsset> {}
+    internal class MaterialSelector : AssetSelector<Material> {}
+    internal class MonoScriptSelector : AssetSelector<MonoScript> {}
+    internal class ScriptableObjectSelector : AssetSelector<ScriptableObject> {}
 }
