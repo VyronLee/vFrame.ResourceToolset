@@ -78,6 +78,7 @@ namespace vFrame.ResourceToolset.Editor.Windows.Migrate
                 return;
             }
 
+            GUILayout.Label("            Path: " + Path);
             GUILayout.Label("            Reference:");
             foreach (var reference in _references) {
                 var path = AssetDatabase.GetAssetPath(reference);
@@ -93,16 +94,14 @@ namespace vFrame.ResourceToolset.Editor.Windows.Migrate
 
         private HashSet<Object> _references = new HashSet<Object>();
 
-        private string _path;
         private string _guid;
         private long _fileId;
 
         public DependencyAssetListItem(Object asset) {
             _asset = asset;
-            _path = AssetDatabase.GetAssetPath(_asset);
 
             if (!AssetDatabase.TryGetGUIDAndLocalFileIdentifier(_asset, out _guid, out _fileId)) {
-                Debug.LogError("Get file id of asset failed: " + _path);
+                Debug.LogError("Get file id of asset failed: " + Path);
             }
         }
 
@@ -119,7 +118,7 @@ namespace vFrame.ResourceToolset.Editor.Windows.Migrate
         }
 
         public Object Asset => _asset;
-        public string Path => _path;
+        public string Path => AssetDatabase.GetAssetPath(Asset);
         public string Guid => _guid;
         public long FileId => _fileId;
 
@@ -129,7 +128,7 @@ namespace vFrame.ResourceToolset.Editor.Windows.Migrate
         public AssetOperationEvent OnDeleteClick { get; private set; } = new AssetOperationEvent();
 
         public override string ToString() {
-            return $"Asset: {_asset}, Path: {_path}, Guid: {_guid}, FileID: {_fileId}";
+            return $"Asset: {_asset}, Path: {Path}, Guid: {_guid}, FileID: {_fileId}";
         }
     }
 

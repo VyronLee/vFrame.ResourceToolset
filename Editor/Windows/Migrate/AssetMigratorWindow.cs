@@ -1,9 +1,11 @@
 ﻿using System;
+using System.Collections;
 using System.Collections.Generic;
 using System.IO;
 using System.Linq;
 using Sirenix.OdinInspector;
 using Sirenix.Utilities;
+using Unity.EditorCoroutines.Editor;
 using UnityEditor;
 using UnityEngine;
 using vFrame.ResourceToolset.Editor.Const;
@@ -52,71 +54,146 @@ namespace vFrame.ResourceToolset.Editor.Windows.Migrate
         //================ Group1 =================
 
         [ShowInInspector]
-        [TitleGroup(Group1, Alignment = TitleAlignments.Centered)]
+        [BoxGroup(Group1, CenterLabel = true)]
         [TitleGroup(Group1_SubGroup1)]
         [HideLabel]
         private AssetFilter _realObjectFilter = new AssetFilter();
 
         [PropertySpace(SpaceBefore = 5)]
         [ShowInInspector]
-        [TitleGroup(Group1)]
+        [BoxGroup(Group1)]
         [TitleGroup(Group1_SubGroup2)]
+        [ListDrawerSettings(HideAddButton = true, Expanded = true)]
         [AssetsOnly]
         private List<Object> _processAssets = new List<Object>();
 
+        [OnInspectorGUI]
+        [BoxGroup(Group1)]
+        [TitleGroup(Group1_SubGroup2)]
+        private void DropAreaGUI()
+        {
+            var evt = Event.current;
+            var dropArea = GUILayoutUtility.GetRect(0.0f, 50.0f, GUILayout.ExpandWidth(true));
+
+            var boxStyle = GUI.skin.box;
+            boxStyle.normal.textColor = Color.white;
+            boxStyle.fontSize = 20;
+            boxStyle.alignment = TextAnchor.MiddleCenter;
+            GUI.Box(dropArea, "Drop Any Object Here", boxStyle);
+
+            switch (evt.type) {
+                case EventType.DragUpdated:
+                case EventType.DragPerform:
+                    if (!dropArea.Contains(evt.mousePosition))
+                        return;
+
+                    DragAndDrop.visualMode = DragAndDropVisualMode.Copy;
+
+                    if (evt.type == EventType.DragPerform) {
+                        DragAndDrop.AcceptDrag();
+
+                        foreach (var obj in DragAndDrop.objectReferences) {
+                            _processAssets.Add(obj);
+                        }
+                    }
+                    break;
+            }
+        }
+
         [ShowInInspector]
-        [TitleGroup(Group1)]
+        [BoxGroup(Group1)]
         [ToggleLeft]
         private bool _showRealObjects = false;
 
         [ShowInInspector]
-        [TitleGroup(Group1)]
+        [BoxGroup(Group1)]
         [ShowIf("_showRealObjects")]
-        [TableList]
         [ReadOnly]
-        private HashSet<Object> _realObjects = new HashSet<Object>();
+        [ListDrawerSettings(NumberOfItemsPerPage = 10, Expanded = true)]
+        private List<Object> _realObjects = new List<Object>();
+
+        [BoxGroup(Group1)]
+        [TitleGroup(Group1_SubGroup2)]
+        [Button(ButtonSizes.Medium)]
+        private void FilterProcessTargets() {
+            if (_processAssets.Count <= 0) {
+                ShowNotification("Please Select Objects To Process.");
+                return;
+            }
+
+            _searched = true;
+
+            // Must delay call for 1 frame, otherwise error of Odin will occur.
+            /*
+             * IndexOutOfRangeException: Index was outside the bounds of the array.
+             * Sirenix.OdinInspector.Editor.PropertyChildren.Get (System.Int32 index) (at <65e93e2b5170492382789d6ed1597fdb>:0)
+             * Sirenix.OdinInspector.Editor.PropertyChildren.get_Item (System.Int32 index) (at <65e93e2b5170492382789d6ed1597fdb>:0)
+             * Sirenix.OdinInspector.Editor.Drawers.TableListAttributeDrawer.DrawCell (Sirenix.OdinInspector.Editor.Drawers.TableListAttributeDrawer+Column col, System.Int32 rowIndex) (at <65e93e2b5170492382789d6ed1597fdb>:0)
+             * ...
+             */
+            EditorCoroutineUtility.StartCoroutine(DelayFilterRealProcess(), this);
+        }
+
+        private IEnumerator DelayFilterRealProcess() {
+            yield return null;
+            ShowNotification("Filtering Process Objects, Please Wait..");
+            yield return null;
+            FilterRealProcessTargets();
+            RemoveNotification();
+            _showRealObjects = true;
+        }
+
+        [ShowInInspector]
+        [PropertySpace(SpaceBefore = 10, SpaceAfter = 10)]
+        [HideLabel]
+        [DisplayAsString]
+        private string _placeholder = string.Empty;
 
         //================ Group2 =================
 
         [ShowInInspector]
-        [TitleGroup(Group2, Alignment = TitleAlignments.Centered)]
+        [BoxGroup(Group2, CenterLabel = true)]
         [TitleGroup(Group2_SubGroup1)]
         [HideLabel]
         private AssetFilter _dependenciesFilter = new AssetFilter();
 
         [ShowInInspector]
-        [TitleGroup(Group2)]
+        [BoxGroup(Group2)]
         [TitleGroup(Group2_SubGroup2)]
         [ToggleLeft]
         private bool _analyzeDependenciesRecursive = true;
 
         [ShowInInspector]
-        [TitleGroup(Group2)]
+        [BoxGroup(Group2)]
         [TitleGroup(Group2_SubGroup5)]
         [HorizontalGroup(Group2_SubGroup5_Sub1, Width = 250)]
         [LabelWidth(80)]
         private GroupType _groupType = GroupType.None;
 
         [ShowInInspector]
-        [TitleGroup(Group2)]
+        [BoxGroup(Group2)]
         [TitleGroup(Group2_SubGroup5)]
         [HorizontalGroup(Group2_SubGroup5_Sub1, Width = 100)]
         [Button(ButtonSizes.Small)]
         [LabelText("Refresh")]
         private void RefreshByGroupType() {
-            var items = _dependencies.SelectMany(v => v.Assets);
+            var items = _dependencies.SelectMany(v => v.Assets).ToList();
+            if (items.Count <= 0) {
+                ShowNotification("Dependencies List Is Empty.");
+                return;
+            }
             _dependencies = GroupDependenciesInternal(items.ToList());
         }
 
         [PropertySpace]
         [ShowInInspector]
-        [TitleGroup(Group2)]
+        [BoxGroup(Group2)]
         [TitleGroup(Group2_SubGroup3)]
         [ListDrawerSettings(HideAddButton = true, HideRemoveButton = true, DraggableItems = false, IsReadOnly = true)]
         private List<DependencyAssetGroup> _dependencies = new List<DependencyAssetGroup>();
 
         [ShowInInspector]
-        [TitleGroup(Group2)]
+        [BoxGroup(Group2)]
         [TitleGroup(Group2_SubGroup3)]
         [HideIf("_searched")]
         [LabelText("Please Search Dependencies First.")]
@@ -127,7 +204,7 @@ namespace vFrame.ResourceToolset.Editor.Windows.Migrate
 
 #pragma warning restore CS0414, CS0469
 
-        [TitleGroup(Group2)]
+        [BoxGroup(Group2)]
         [TitleGroup(Group2_SubGroup4)]
         [Button(ButtonSizes.Medium)]
         private void RefreshDependencies() {
@@ -146,16 +223,10 @@ namespace vFrame.ResourceToolset.Editor.Windows.Migrate
              * Sirenix.OdinInspector.Editor.Drawers.TableListAttributeDrawer.DrawCell (Sirenix.OdinInspector.Editor.Drawers.TableListAttributeDrawer+Column col, System.Int32 rowIndex) (at <65e93e2b5170492382789d6ed1597fdb>:0)
              * ...
              */
-            var delayCall = (EditorApplication.CallbackFunction)null;
-            delayCall = () => {
-                FilterRealProcessTargets();
-                SearchAndGroupDependenciesInternal();
-                EditorApplication.update -= delayCall;
-            };
-            EditorApplication.update += delayCall;
+            EditorCoroutineUtility.StartCoroutine(DelaySearchAndGroupDependenciesInternal(), this);
         }
 
-        [TitleGroup(Group2)]
+        [BoxGroup(Group2)]
         [TitleGroup(Group2_SubGroup4)]
         [Button(ButtonSizes.Medium)]
         private void MoveSelectedDependencies() {
@@ -163,7 +234,7 @@ namespace vFrame.ResourceToolset.Editor.Windows.Migrate
             OnAssetsMoveClick(selected);
         }
 
-        [TitleGroup(Group2)]
+        [BoxGroup(Group2)]
         [TitleGroup(Group2_SubGroup4)]
         [Button(ButtonSizes.Medium)]
         private void ReplaceSelectedDependencies() {
@@ -171,7 +242,7 @@ namespace vFrame.ResourceToolset.Editor.Windows.Migrate
             OnAssetsReplaceClick(selected);
         }
 
-        [TitleGroup(Group2)]
+        [BoxGroup(Group2)]
         [TitleGroup(Group2_SubGroup4)]
         [Button(ButtonSizes.Medium)]
         private void DeleteSelectedDependencies() {
@@ -191,24 +262,17 @@ namespace vFrame.ResourceToolset.Editor.Windows.Migrate
         // Processor
 
         private void FilterRealProcessTargets() {
-            EditorUtility.DisplayProgressBar("Filtering Real Objects", "", 0f);
-
             var folders = _processAssets.Where(v =>
                 v && AssetDatabase.IsValidFolder(AssetDatabase.GetAssetPath(v)));
             var files = _processAssets.Where(v =>
                 v && !AssetDatabase.IsValidFolder(AssetDatabase.GetAssetPath(v)));
 
-            EditorUtility.DisplayProgressBar("Filtering Real Objects", "", 0.2f);
+            var realObjects = new HashSet<Object>();
+            realObjects.AddRange(LoadMainAndSubAssets(files));
+            realObjects.AddRange(LoadAllAssetsInFolder(folders));
+            realObjects = realObjects.Where(v => _realObjectFilter.FilterTest(v)).ToHashSet();
 
-            _realObjects.Clear();
-            _realObjects.AddRange(LoadMainAndSubAssets(files));
-            EditorUtility.DisplayProgressBar("Filtering Real Objects", "", 0.4f);
-
-            _realObjects.AddRange(LoadAllAssetsInFolder(folders));
-            EditorUtility.DisplayProgressBar("Filtering Real Objects", "", 0.8f);
-
-            _realObjects = _realObjects.Where(v => !_realObjectFilter.FilterTest(v)).ToHashSet();
-            EditorUtility.ClearProgressBar();
+            _realObjects = realObjects.ToList();
         }
 
         private static IEnumerable<Object> LoadAllAssetsInFolder(IEnumerable<Object> folders) {
@@ -257,7 +321,7 @@ namespace vFrame.ResourceToolset.Editor.Windows.Migrate
                 }
 
                 var dependenciesRet = ret.Select(d => d.Value)
-                    .Where(v => !_dependenciesFilter.FilterTest(v.Asset))
+                    .Where(v => _dependenciesFilter.FilterTest(v.Asset))
                     .ToList();
                 dependenciesRet.Sort((a, b) => string.Compare(
                     a.GetType().GetCompilableNiceFullName(),
@@ -298,9 +362,21 @@ namespace vFrame.ResourceToolset.Editor.Windows.Migrate
             }
             EditorUtility.ClearProgressBar();
 
+            // Sort each group
+            foreach (var kv in groups) {
+                var assetGroup = kv.Value;
+                assetGroup.Assets.Sort((a, b) =>
+                    string.Compare(a.Asset.name, b.Asset.name, StringComparison.Ordinal));
+            }
+
             var ret = groups.Select(kv => kv.Value).ToList();
             ret.Sort((a,b) => -a.Assets.Count.CompareTo(b.Assets.Count));
             return ret;
+        }
+
+        private IEnumerator DelaySearchAndGroupDependenciesInternal() {
+            yield return null;
+            SearchAndGroupDependenciesInternal();
         }
 
         private void SearchAndGroupDependenciesInternal() {
@@ -399,7 +475,7 @@ namespace vFrame.ResourceToolset.Editor.Windows.Migrate
                 return;
             }
 
-            if (AssetMigrationUtils.ReplaceAsset(_realObjects.ToArray(), target.Asset, newAsset)) {
+            if (AssetMigrationUtils.ReplaceAsset(target.References.ToArray(), target.Asset, newAsset)) {
                 AssetDatabase.Refresh();
                 if (EditorUtility.DisplayDialog("Tips", "Duplicate Asset Succeed.", "Refresh Dependencies", "Cancel")) {
                     SearchAndGroupDependenciesInternal();
@@ -421,7 +497,7 @@ namespace vFrame.ResourceToolset.Editor.Windows.Migrate
                     return;
                 }
 
-                if (AssetMigrationUtils.ReplaceAsset(_realObjects.ToArray(), target.Asset, first)) {
+                if (AssetMigrationUtils.ReplaceAsset(target.References.ToArray(), target.Asset, first)) {
                     AssetDatabase.Refresh();
                     if (EditorUtility.DisplayDialog("Tips", "Replace Asset Succeed.", "Refresh Dependencies", "Cancel")) {
                         SearchAndGroupDependenciesInternal();
@@ -432,7 +508,7 @@ namespace vFrame.ResourceToolset.Editor.Windows.Migrate
                 ShowNotification("Nothing changed.");
             }
 
-            AssetSelector.OpenSelector(target.Asset, OnSelectionConfirmed);
+            EditorCoroutineUtility.StartCoroutine(AssetSelector.OpenSelector(target.Asset, OnSelectionConfirmed, this), this);
         }
 
         private void OnAssetsReplaceClick(IEnumerable<DependencyAssetListItem> assets) {
@@ -459,13 +535,14 @@ namespace vFrame.ResourceToolset.Editor.Windows.Migrate
 
                 var succeed = new List<string>();
                 foreach (var asset in listItems.Where(v => v.Asset != firstSelection)) {
-                    if (!AssetMigrationUtils.ReplaceAsset(_realObjects.ToArray(), asset.Asset, firstSelection)) {
+                    if (!AssetMigrationUtils.ReplaceAsset(asset.References.ToArray(), asset.Asset, firstSelection)) {
                         continue;
                     }
                     succeed.Add(asset.Path);
                 }
 
                 if (succeed.Count > 0) {
+                    AssetDatabase.Refresh();
                     if (EditorUtility.DisplayDialog("Tips", "Replace Asset Succeed.", "Refresh Dependencies", "Cancel")) {
                         SearchAndGroupDependenciesInternal();
                     }
@@ -474,10 +551,9 @@ namespace vFrame.ResourceToolset.Editor.Windows.Migrate
                 else {
                     ShowNotification("Nothing changed.");
                 }
-                AssetDatabase.Refresh();
             }
 
-            AssetSelector.OpenSelector(first.Asset, OnSelectionConfirmed);
+            EditorCoroutineUtility.StartCoroutine(AssetSelector.OpenSelector(first.Asset, OnSelectionConfirmed, this), this);
         }
 
         private void OnAssetDeleteClick(DependencyAssetListItem target) {
