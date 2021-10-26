@@ -12,7 +12,12 @@ namespace vFrame.ResourceToolset.Editor.Menus
 
         [MenuItem(ToolsetConst.AssetsMenuDir + "Animation/Modify Animation Curve Precision")]
         private static void ModifyAnimationCurvePrecision() {
-            var precision = AnimationOptimizationConfig.Instance.Precision;
+            var config = ScriptableObjectUtils.GetScriptableObjectSingleton<AnimationOptimizationConfig>();
+            if (!config) {
+                return;
+            }
+
+            var precision = config.Precision;
 
             bool Optimize(Object obj) {
                 return obj is AnimationClip clip

@@ -1,19 +1,11 @@
 using Sirenix.OdinInspector;
 using UnityEditor;
 using UnityEngine;
-using vFrame.ResourceToolset.Editor.Const;
 using vFrame.ResourceToolset.Editor.Exceptions;
 
 namespace vFrame.ResourceToolset.Editor.Configs
 {
-    [CreateAssetMenu(
-        fileName = nameof(BuiltinAssetConfig),
-        menuName = ToolsetConst.BuiltinAssetConfigMenuName,
-        order = 0)]
-    [FilePath(
-        ToolsetConst.BuiltinAssetConfigFilePath,
-        FilePathAttribute.Location.ProjectFolder)]
-    internal class BuiltinAssetConfig : ScriptableSingleton<BuiltinAssetConfig>
+    internal class BuiltinAssetConfig : ResourceToolsetConfig
     {
         #pragma warning disable CS0649
 

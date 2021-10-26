@@ -2,6 +2,7 @@
 using UnityEditor;
 using UnityEngine;
 using vFrame.ResourceToolset.Editor.Configs;
+using vFrame.ResourceToolset.Editor.Utils;
 
 namespace vFrame.ResourceToolset.Editor.Importers
 {
@@ -14,10 +15,12 @@ namespace vFrame.ResourceToolset.Editor.Importers
         /// <param name="renderer"></param>
         /// <returns></returns>
         protected Material OnAssignMaterialModel(Material previousMaterial, Renderer renderer) {
-            if (!BuiltinAssetConfig.Instance.AutoReplaceFBXInternalMaterialOnImport) {
+            var config = ScriptableObjectUtils.GetScriptableObjectSingleton<BuiltinAssetConfig>();
+            if (!config || !config.AutoReplaceFBXInternalMaterialOnImport) {
                 return previousMaterial;
             }
-            var material = BuiltinAssetConfig.Instance.FBXInternalMaterialReplacement;
+
+            var material = config.FBXInternalMaterialReplacement;
             if (material) {
                 return material;
             }
@@ -30,11 +33,12 @@ namespace vFrame.ResourceToolset.Editor.Importers
         /// </summary>
         /// <param name="go"></param>
         private void OnPostprocessModel(GameObject go) {
-            if(!BuiltinAssetConfig.Instance.AutoReplaceFBXInternalMaterialOnImport) {
+            var config = ScriptableObjectUtils.GetScriptableObjectSingleton<BuiltinAssetConfig>();
+            if (!config || !config.AutoReplaceFBXInternalMaterialOnImport) {
                 return;
             }
 
-            var material = BuiltinAssetConfig.Instance.FBXInternalMaterialReplacement;
+            var material = config.FBXInternalMaterialReplacement;
             if (!material) {
                 Debug.LogError("FBX internal material must be specified.");
                 return;
