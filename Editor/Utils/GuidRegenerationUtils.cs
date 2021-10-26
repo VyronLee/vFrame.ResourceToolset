@@ -20,6 +20,8 @@ namespace vFrame.ResourceToolset.Editor.Utils
             "*.guiskin",
             "*.fontsettings",
             "*.controller",
+            "*.spriteatlas",
+            "*.preset",
         };
 
         public static bool RegenerateGuidsInDirectory(string targetDirectory,

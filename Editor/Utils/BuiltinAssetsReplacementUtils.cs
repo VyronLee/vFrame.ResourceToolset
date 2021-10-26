@@ -18,8 +18,16 @@ namespace vFrame.ResourceToolset.Editor.Utils
             return path.StartsWith("Resources/unity_builtin_extra");
         }
 
+        private static BuiltinAssetConfig GetConfig() {
+            var config = ScriptableObjectUtils.GetScriptableObjectSingleton<BuiltinAssetConfig>();
+            if (!config) {
+                throw new ResourceToolsetException("BuiltinAssetConfig does not exist.");
+            }
+            return config;
+        }
+
         public static Material GetReplacementBuiltinMaterial(string name) {
-            var dir = BuiltinAssetConfig.Instance.BuiltinReplacementMaterialsDir;
+            var dir = GetConfig().BuiltinReplacementMaterialsDir;
             var material = AssetDatabase.LoadAssetAtPath<Material>($"{dir}/{name}.mat");
             if (material)
                 return material;
@@ -28,7 +36,7 @@ namespace vFrame.ResourceToolset.Editor.Utils
         }
 
         public static Sprite GetReplacementBuiltinSprite(string name) {
-            var dir = BuiltinAssetConfig.Instance.BuiltinReplacementTextureDir;
+            var dir = GetConfig().BuiltinReplacementTextureDir;
             var path = $"{dir}/{name}.psd";
             var sprite = AssetDatabase.LoadAssetAtPath<Sprite>(path);
             if (sprite) {
@@ -38,7 +46,7 @@ namespace vFrame.ResourceToolset.Editor.Utils
         }
 
         public static Texture GetReplacementBuiltinTexture(string name) {
-            var dir = BuiltinAssetConfig.Instance.BuiltinReplacementTextureDir;
+            var dir = GetConfig().BuiltinReplacementTextureDir;
             var path = $"{dir}/{name}.psd";
             var texture = AssetDatabase.LoadAssetAtPath<Texture>(path);
             if (texture) {

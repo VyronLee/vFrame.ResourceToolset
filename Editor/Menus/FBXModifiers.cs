@@ -12,7 +12,11 @@ namespace vFrame.ResourceToolset.Editor.Menus
 
         [MenuItem(ToolsetConst.AssetsMenuDir + "FBX/Replace FBX Internal Materials")]
         private static void ReplaceMaterials() {
-            var newMaterial = BuiltinAssetConfig.Instance.FBXInternalMaterialReplacement;
+            var config = ScriptableObjectUtils.GetScriptableObjectSingleton<BuiltinAssetConfig>();
+            if (!config) {
+                return;
+            }
+            var newMaterial = config.FBXInternalMaterialReplacement;
             if (!newMaterial) {
                 throw new BuiltinReplacementAssetNotAssignedException("FBX internal material must be specified.");
             }
