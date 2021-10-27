@@ -32,10 +32,11 @@ namespace vFrame.ResourceToolset.Editor.Windows.Settings
                 if (null != _headerStyle) {
                     return _headerStyle;
                 }
-                _headerStyle = GUI.skin.label;
-                _headerStyle.fontSize = 24;
-                _headerStyle.fontStyle = FontStyle.Bold;
-                _headerStyle.alignment = TextAnchor.UpperCenter;
+                _headerStyle = new GUIStyle(GUI.skin.label) {
+                    fontSize = 24,
+                    fontStyle = FontStyle.Bold,
+                    alignment = TextAnchor.UpperCenter
+                };
                 return _headerStyle;
             }
         }
@@ -56,7 +57,7 @@ namespace vFrame.ResourceToolset.Editor.Windows.Settings
         [ShowIf("@!_settingConfig")]
         [PropertyOrder(3)]
         private void CreateResourceToolsetSettingConfig() {
-            _settingConfig = ScriptableObjectUtils.ConfirmCreateConfig<ResourceToolsetSettingConfig>();
+            _settingConfig = ScriptableObjectUtils.ConfirmCreateScriptableObject<ResourceToolsetSettingConfig>();
         }
 
         // ==========================================================

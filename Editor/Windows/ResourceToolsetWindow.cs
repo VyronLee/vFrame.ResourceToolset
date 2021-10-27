@@ -1,8 +1,6 @@
-﻿using System;
-using System.IO;
-using System.Security.Cryptography;
-using Sirenix.OdinInspector.Editor;
+﻿using Sirenix.OdinInspector.Editor;
 using UnityEngine;
+using vFrame.ResourceToolset.Editor.Utils;
 
 namespace vFrame.ResourceToolset.Editor.Windows
 {
@@ -28,13 +26,7 @@ namespace vFrame.ResourceToolset.Editor.Windows
         }
 
         protected static string CalculateFileMD5(string path) {
-            using (var md5 = MD5.Create()) {
-                using (var stream = File.OpenRead(path)) {
-                    var hash = md5.ComputeHash(stream);
-                    var hashValue = BitConverter.ToString(hash).Replace("-", "").ToLower();
-                    return hashValue;
-                }
-            }
+            return AssetProcessorUtils.CalculateFileMD5(path);
         }
     }
 }

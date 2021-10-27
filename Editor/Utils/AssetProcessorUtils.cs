@@ -1,13 +1,20 @@
 ﻿using System;
+using System.Collections;
 using System.Collections.Generic;
+using System.Diagnostics.CodeAnalysis;
+using System.IO;
 using System.Linq;
+using System.Security.Cryptography;
+using System.Text;
 using UnityEditor;
 using UnityEditor.SceneManagement;
 using UnityEngine;
+using vFrame.ResourceToolset.Editor.Exceptions;
 using Object = UnityEngine.Object;
 
 namespace vFrame.ResourceToolset.Editor.Utils
 {
+    [SuppressMessage("ReSharper", "MemberCanBePrivate.Global")]
     public static class AssetProcessorUtils
     {
         private const int UnloadAssetsOnProcessedCount = 200;
@@ -140,10 +147,13 @@ namespace vFrame.ResourceToolset.Editor.Utils
             Debug.Log($"{title} finished.");
         }
 
-        public static void ForceSaveAsset(Object asset) {
+        public static void ForceSaveAsset(this Object asset) {
             switch (asset) {
-                case GameObject prefab: {
-                    PrefabUtility.SavePrefabAsset(prefab);
+                case GameObject gameObject: {
+                    if (!gameObject.IsPrefab()) {
+                        throw new ResourceToolsetException("Save failed, target asset not prefab.");
+                    }
+                    PrefabUtility.SavePrefabAsset(gameObject);
                     break;
                 }
                 case SceneAsset sceneAsset: {
@@ -162,6 +172,44 @@ namespace vFrame.ResourceToolset.Editor.Utils
             }
         }
 
+        public static string CalculateAssetHash(string path) {
+            if (!File.Exists(path)) {
+                return string.Empty;
+            }
+
+            var metaMd5 = "";
+            var meta = path + ".meta";
+            if (File.Exists(meta)) {
+                metaMd5 = CalculateFileMD5(meta);
+            }
+
+            var fileMd5 = CalculateFileMD5(path);
+            if (string.IsNullOrEmpty(metaMd5)) {
+                return fileMd5;
+            }
+            return CalculateMD5(fileMd5 + metaMd5);
+        }
+
+        internal static string CalculateFileMD5(string path) {
+            using (var md5 = MD5.Create()) {
+                using (var stream = File.OpenRead(path)) {
+                    var hash = md5.ComputeHash(stream);
+                    var hashValue = BitConverter.ToString(hash).Replace("-", "").ToLower();
+                    return hashValue;
+                }
+            }
+        }
+
+        internal static string CalculateMD5(string content) {
+            using (var md5 = MD5.Create()) {
+                using (var stream = new MemoryStream(Encoding.UTF8.GetBytes(content))) {
+                    var hash = md5.ComputeHash(stream);
+                    var hashValue = BitConverter.ToString(hash).Replace("-", "").ToLower();
+                    return hashValue;
+                }
+            }
+        }
+
         internal static string MakeRelativePath(this string fromPath, string toPath) {
             var fromUri = new Uri(fromPath);
             var toUri = new Uri(toPath);
@@ -172,5 +220,19 @@ namespace vFrame.ResourceToolset.Editor.Utils
             return relativePath;
         }
 
+        internal static void RunAndWait(this IEnumerator enumerator) {
+            while (enumerator.MoveNext()) {
+                if (enumerator.Current is IEnumerator current) {
+                    current.RunAndWait();
+                }
+            }
+        }
+
+        internal static bool IsPrefab(this GameObject go) {
+            return !go.scene.IsValid()
+                   || go.scene.name == go.name
+                   || go.scene.name == null
+                   || go.scene.name == "";
+        }
     }
 }

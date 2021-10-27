@@ -16,7 +16,7 @@ namespace vFrame.ResourceToolset.Editor.Windows.Migrate
 {
     public class AssetMigratorWindow : ResourceToolsetWindow
     {
-        [MenuItem(ToolsetConst.ToolsMenuDir + "Migrator")]
+        [MenuItem(ToolsetConst.ToolsMenuDir + "Asset Migrator")]
         private static void OpenAssetMigratorWindow() {
             var window = GetWindow<AssetMigratorWindow>();
             window.titleContent = new GUIContent("Asset Migrator");

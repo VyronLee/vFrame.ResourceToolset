@@ -6,9 +6,11 @@ using vFrame.ResourceToolset.Editor.Utils;
 namespace vFrame.ResourceToolset.Editor.Configs
 {
     [Serializable]
-    [InlineEditor]
-    internal class ResourceToolsetSettingConfig : ResourceToolsetConfig
+    [HideReferenceObjectPicker]
+    public class ResourceToolsetSettingConfig : ResourceToolsetConfig
     {
+        #pragma warning disable CS0649
+
         [SerializeField]
         [InlineEditor(InlineEditorObjectFieldModes.Hidden)]
         [TitleGroup("AnimationOptimizationConfig")]
@@ -18,8 +20,9 @@ namespace vFrame.ResourceToolset.Editor.Configs
         [Button(ButtonSizes.Medium)]
         [TitleGroup("AnimationOptimizationConfig")]
         [ShowIf("@!_animationOptimizationConfig")]
+        [PropertySpace(SpaceAfter = 20)]
         private void CreateAnimationOptimizationConfig() {
-            _animationOptimizationConfig = ScriptableObjectUtils.ConfirmCreateConfig<AnimationOptimizationConfig>();
+            _animationOptimizationConfig = ScriptableObjectUtils.ConfirmCreateScriptableObject<AnimationOptimizationConfig>();
         }
 
         [SerializeField]
@@ -31,9 +34,26 @@ namespace vFrame.ResourceToolset.Editor.Configs
         [Button(ButtonSizes.Medium)]
         [TitleGroup("BuiltinAssetConfig")]
         [ShowIf("@!_builtinAssetConfig")]
+        [PropertySpace(SpaceAfter = 20)]
         private void CreateBuiltinAssetConfig() {
-            _builtinAssetConfig = ScriptableObjectUtils.ConfirmCreateConfig<BuiltinAssetConfig>();
+            _builtinAssetConfig = ScriptableObjectUtils.ConfirmCreateScriptableObject<BuiltinAssetConfig>();
         }
+
+        [SerializeField]
+        [InlineEditor(InlineEditorObjectFieldModes.Hidden)]
+        [TitleGroup("AssetImportConfig")]
+        [HideReferenceObjectPicker]
+        private AssetImportConfig _assetImportConfig;
+
+        [Button(ButtonSizes.Medium)]
+        [TitleGroup("AssetImportConfig")]
+        [ShowIf("@!_assetImportConfig")]
+        [PropertySpace(SpaceAfter = 20)]
+        private void CreateAssetImportConfig() {
+            _assetImportConfig = ScriptableObjectUtils.ConfirmCreateScriptableObject<AssetImportConfig>();
+        }
+
+        #pragma warning restore CS0649
 
         public AnimationOptimizationConfig AnimationOptimizationConfig => _animationOptimizationConfig;
         public BuiltinAssetConfig BuiltinAssetConfig => _builtinAssetConfig;
