@@ -11,8 +11,12 @@ namespace vFrame.ResourceToolset.Editor.Configs
         [FolderPath]
         private string _assetHashCacheDirectory;
 
+        [SerializeField]
+        private string _ruleHashCacheFile;
+
         #pragma warning restore CS0649
 
         public string AssetHashCacheDirectory => _assetHashCacheDirectory;
+        public string RuleHashCacheFile => _ruleHashCacheFile;
     }
 }

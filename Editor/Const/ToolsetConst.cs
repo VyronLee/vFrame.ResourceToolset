@@ -10,5 +10,7 @@ namespace vFrame.ResourceToolset.Editor.Const
 
         public const string AnimationOptimizationConfigFilePath = "Assets/Editor/ResourceToolset/AnimationOptimizationConfig.asset";
         public const string AnimationOptimizationConfigMenuName = "Resource Toolset/Animation Optimization Config";
+
+        public const string DefaultRuleCacheFilePath = "Assets/RuleCacheFile.asset";
     }
 }
