@@ -13,7 +13,8 @@ namespace vFrame.ResourceToolset.Editor.Utils
         public static void ImportAsset(string path) {
             var rules = FindImportRuleOf(path);
             if (null == rules || rules.Length <= 0) {
-                Debug.LogFormat(MsgNoAssetImportRuleFound, path);
+                AssetDatabase.ImportAsset(path); // Fallback to builtin import process.
+                Debug.LogWarningFormat(MsgNoAssetImportRuleFound, path);
                 return;
             }
             rules.ForEach(r => r.ApplyTo(path));
