@@ -17,7 +17,7 @@ MonoBehaviour:
     _filterByFolderAndExtension:
       _folder: 
       _extensions: 
-      _excludeRegex: 
       _includeSubFolders: 1
+      _excludeRegex: 
     _filterByFilePath:
       _filePath: 

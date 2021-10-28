@@ -97,6 +97,7 @@ namespace vFrame.ResourceToolset.Editor.Windows.Importer
             if (!ProcessImport(importer)) {
                 return;
             }
+            importer.SaveAndReimport();
             Debug.Log("Asset re-import: " + path);
 
             var md5 = AssetProcessorUtils.CalculateAssetHash(path);
@@ -136,10 +137,7 @@ namespace vFrame.ResourceToolset.Editor.Windows.Importer
                     _importProgress = progress / 2;
                     EditorUtility.DisplayProgressBar("Importing", path, progress);
                     OnTravel(path);
-
-                    if (index % 5 == 0) { // Wait for 1 frame to render GUI every 5 frames.
-                        yield return null;
-                    }
+                    yield return null;
                 }
             }
             finally {

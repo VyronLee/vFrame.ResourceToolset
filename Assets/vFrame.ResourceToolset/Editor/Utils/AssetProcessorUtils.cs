@@ -18,29 +18,58 @@ namespace vFrame.ResourceToolset.Editor.Utils
     public static class AssetProcessorUtils
     {
         private const int UnloadAssetsOnProcessedCount = 200;
+        private const string WildcardExt = ".*";
 
-        public static List<string> GetSelectedObjects(string[] extensions) {
+        /// <summary>
+        /// Return all asset file paths of selection EXCLUDE directory objects.
+        /// </summary>
+        /// <returns></returns>
+        public static string[] GetSelectedObjectPaths() {
+             return GetSelectedObjectPaths(new[] { WildcardExt });
+        }
+
+        /// <summary>
+        /// Return specified asset file paths with extensions of selection EXCLUDE directory objects.
+        /// </summary>
+        /// <returns></returns>
+        public static string[] GetSelectedObjectPaths(string[] extensions) {
+             return GetSelectedObjectGUIDs(extensions).Select(AssetDatabase.GUIDToAssetPath).ToArray();
+        }
+
+        /// <summary>
+        /// Return all asset guids of selection EXCLUDE directory objects.
+        /// </summary>
+        /// <returns></returns>
+        public static string[] GetSelectedObjectGUIDs() {
+            return GetSelectedObjectGUIDs(new[] { WildcardExt });
+        }
+
+        /// <summary>
+        /// Return specified asset guids with extensions of selection EXCLUDE directory objects.
+        /// </summary>
+        /// <returns></returns>
+        public static string[] GetSelectedObjectGUIDs(string[] extensions) {
             var selection = Selection.activeObject;
             var path = AssetDatabase.GetAssetPath(selection);
             if (!AssetDatabase.IsValidFolder(path))
-                return new List<string> {AssetDatabase.AssetPathToGUID(path)};
+                return new[] {AssetDatabase.AssetPathToGUID(path)};
 
-            return GetObjectsInDirectory(path, extensions);
+            return GetObjectGUIDsInDirectory(path, extensions);
         }
 
-        public static List<string> GetObjectsInDirectory(string dir, string[] extensions) {
+        public static string[] GetObjectGUIDsInDirectory(string dir, string[] extensions) {
             if (string.IsNullOrEmpty(dir)) {
                 throw new ArgumentException("Argument cannot be null", nameof(dir));
             }
 
             var assets = AssetDatabase.FindAssets("t:Object", new[] {dir});
-            var objects = new List<string>();
+            var objects = new HashSet<string>();
             var index = 0f;
             foreach (var asset in assets) {
                 var p = AssetDatabase.GUIDToAssetPath(asset);
                 EditorUtility.DisplayProgressBar("Filtering Assets", p, ++index / assets.Length);
 
-                if (!extensions.Any(v => p.ToLower().EndsWith(v))) {
+                if (extensions.All(ext => ext != WildcardExt) && !extensions.Any(v => p.ToLower().EndsWith(v))) {
                     continue;
                 }
 
@@ -48,28 +77,28 @@ namespace vFrame.ResourceToolset.Editor.Utils
             }
 
             EditorUtility.ClearProgressBar();
-            return objects;
+            return objects.ToArray();
         }
 
         public static void TravelAndProcessSelectedObjects(string[] extensions, string title, Func<Object, bool> processor) {
-            var objects = GetSelectedObjects(extensions);
-            TravelAndProcessObjects(objects.ToArray(), title, processor);
+            var objects = GetSelectedObjectGUIDs(extensions);
+            TravelAndProcessObjects(objects, title, processor);
         }
 
         public static void TravelAndProcessObjectsInDirectory(string dir, string[] extensions, string title,
             Func<Object, bool> processor) {
-            var objects = GetObjectsInDirectory(dir, extensions);
-            TravelAndProcessObjects(objects.ToArray(), title, processor);
+            var objects = GetObjectGUIDsInDirectory(dir, extensions);
+            TravelAndProcessObjects(objects, title, processor);
         }
 
         public static void TravelSelectedObjects(string[] extensions, string title, Action<Object> processor) {
-            var objects = GetSelectedObjects(extensions);
-            TravelObjects(objects.ToArray(), title, processor);
+            var objects = GetSelectedObjectGUIDs(extensions);
+            TravelObjects(objects, title, processor);
         }
 
         public static void TravelObjectsInDirectory(string dir, string[] extensions, string title, Action<Object> processor) {
-            var objects = GetObjectsInDirectory(dir, extensions);
-            TravelObjects(objects.ToArray(), title, processor);
+            var objects = GetObjectGUIDsInDirectory(dir, extensions);
+            TravelObjects(objects, title, processor);
         }
 
         private static void TravelAndProcessObjects(IReadOnlyCollection<string> objects, string title, Func<Object, bool> processor) {
