@@ -13,3 +13,4 @@ MonoBehaviour:
   m_Name: AssetImportConfig
   m_EditorClassIdentifier: 
   _assetHashCacheDirectory: Assets/Test/AssetImport/Cache
+  _ruleHashCacheFile: Assets/Test/AssetImport/Cache/RuleCacheFile.asset

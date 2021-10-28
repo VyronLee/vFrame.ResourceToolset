@@ -5,6 +5,10 @@ using System.Linq;
 using Sirenix.OdinInspector;
 using UnityEditor;
 using UnityEngine;
+using vFrame.ResourceToolset.Editor.Common;
+using vFrame.ResourceToolset.Editor.Configs;
+using vFrame.ResourceToolset.Editor.Const;
+using vFrame.ResourceToolset.Editor.Utils;
 
 namespace vFrame.ResourceToolset.Editor.Windows.Importer
 {
@@ -46,10 +50,25 @@ namespace vFrame.ResourceToolset.Editor.Windows.Importer
             if (null == _rules) {
                 return;
             }
+
             foreach (var rule in _rules) {
                 EditorUtility.SetDirty(rule);
             }
             AssetDatabase.SaveAssets();
+
+            // Save rule hash
+            var ruleHash = GetOrCreateRuleHashData();
+            foreach (var rule in _rules) {
+                if (!AssetDatabase.TryGetGUIDAndLocalFileIdentifier(rule, out var guid, out long localId)) {
+                    continue;
+                }
+                var path = AssetDatabase.GetAssetPath(rule);
+                if (string.IsNullOrEmpty(path)) {
+                    continue;
+                }
+                ruleHash[guid] = AssetProcessorUtils.CalculateAssetHash(path);
+            }
+            ruleHash.ForceSaveAsset();
         }
 
         public IEnumerator Import() {
@@ -69,5 +88,23 @@ namespace vFrame.ResourceToolset.Editor.Windows.Importer
                 yield return rule.CoForceImport();
             }
         }
+
+        private static string GetRuleHashFilePath() {
+            var config = ScriptableObjectUtils.GetScriptableObjectSingleton<AssetImportConfig>();
+            if (!config || string.IsNullOrEmpty(config.RuleHashCacheFile)) {
+                return ToolsetConst.DefaultRuleCacheFilePath;
+            }
+            return config.RuleHashCacheFile;
+        }
+
+        private static AssetHashData GetOrCreateRuleHashData() {
+            var path = GetRuleHashFilePath();
+            var asset = AssetDatabase.LoadAssetAtPath<AssetHashData>(path);
+            if (!asset) {
+                asset = ScriptableObjectUtils.CreateScriptableObjectAtPath<AssetHashData>(path);
+            }
+            return asset;
+        }
+
     }
 }

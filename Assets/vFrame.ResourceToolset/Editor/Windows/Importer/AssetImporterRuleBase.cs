@@ -9,6 +9,7 @@ using UnityEditor;
 using UnityEngine;
 using vFrame.ResourceToolset.Editor.Common;
 using vFrame.ResourceToolset.Editor.Configs;
+using vFrame.ResourceToolset.Editor.Const;
 using vFrame.ResourceToolset.Editor.Utils;
 
 namespace vFrame.ResourceToolset.Editor.Windows.Importer
@@ -102,16 +103,17 @@ namespace vFrame.ResourceToolset.Editor.Windows.Importer
 
             var md5 = AssetProcessorUtils.CalculateAssetHash(path);
             hashData[path] = md5;
-            SaveHashData(hashData);
+            SaveAssetHashData(hashData);
         }
 
         private IEnumerator CoImportInternal(bool force) {
             var hashData = GetOrCreateAssetHashData();
+            var ruleHash = GetRuleHash();
             var updated = new List<string>();
 
             void OnTravel(string path) {
                 var md5 = AssetProcessorUtils.CalculateAssetHash(path);
-                if (!force && hashData.ContainsKey(path) && hashData[path] == md5) {
+                if (!force && hashData.ContainsKey(path) && hashData[path] == $"{ruleHash},{md5}") {
                     return;
                 }
 
@@ -147,7 +149,7 @@ namespace vFrame.ResourceToolset.Editor.Windows.Importer
             if (updated.Count <= 0) {
                 _importProgress = 1f;
                 Debug.Log("Reimport finished, no updated.");
-                SaveHashData(hashData);
+                SaveAssetHashData(hashData);
                 yield break;
             }
 
@@ -166,11 +168,11 @@ namespace vFrame.ResourceToolset.Editor.Windows.Importer
             foreach (var path in updated) {
                 EditorUtility.DisplayProgressBar("Updating hash", path, ++index / updated.Count);
                 var md5 = AssetProcessorUtils.CalculateAssetHash(path);
-                hashData[path] = md5;
+                hashData[path] = $"{ruleHash},{md5}";
             }
 
             EditorUtility.ClearProgressBar();
-            SaveHashData(hashData);
+            SaveAssetHashData(hashData);
 
             Resources.UnloadUnusedAssets();
             GC.Collect();
@@ -184,7 +186,33 @@ namespace vFrame.ResourceToolset.Editor.Windows.Importer
             return ret ? ret : CreateInstance<AssetHashData>();
         }
 
-        private void SaveHashData(AssetHashData hashData, bool removeNonExist = true) {
+        private static string GetRuleHashFilePath() {
+            var config = ScriptableObjectUtils.GetScriptableObjectSingleton<AssetImportConfig>();
+            if (!config || string.IsNullOrEmpty(config.RuleHashCacheFile)) {
+                return ToolsetConst.DefaultRuleCacheFilePath;
+            }
+            return config.RuleHashCacheFile;
+        }
+
+        private string GetRuleHash() {
+            var hashFilePath = GetRuleHashFilePath();
+            if (string.IsNullOrEmpty(hashFilePath)) {
+                return "";
+            }
+            var data = AssetDatabase.LoadAssetAtPath<AssetHashData>(hashFilePath);
+            if (!data) {
+                return "";
+            }
+            if (!AssetDatabase.TryGetGUIDAndLocalFileIdentifier(this, out var guid, out long localId)) {
+                return "";
+            }
+            if (!data.TryGetValue(guid, out var hash)) {
+                return "";
+            }
+            return hash;
+        }
+
+        private void SaveAssetHashData(AssetHashData hashData, bool removeNonExist = true) {
             if (null == hashData) {
                 return;
             }
