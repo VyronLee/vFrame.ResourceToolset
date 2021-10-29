@@ -20,7 +20,10 @@ MonoBehaviour:
       _includeSubFolders: 1
       _excludeRegex: 
     _filterByFilePath:
-      _filePath: Assets/Test/AssetImport/Sprite4.png
+      _filePaths:
+      - Assets/Test/AssetImport/Cache/RuleCacheFile.asset
+      - Assets/Test/AssetImport/Cache/vFrame.ResourceToolset.Editor.Windows.Importer.Rules.PresetTextureImporterRule.asset
+      - Assets/Test/AssetImport/Sprite4.png
   _importSetting:
     _textureImportType:
       _enable: 1

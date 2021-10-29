@@ -13,6 +13,10 @@ MonoBehaviour:
   m_Name: vFrame.ResourceToolset.Editor.Windows.Importer.Rules.PresetTextureImporterRule
   m_EditorClassIdentifier: 
   _keys:
+  - Assets/Test/AssetImport/Cache/RuleCacheFile.asset
+  - Assets/Test/AssetImport/Cache/vFrame.ResourceToolset.Editor.Windows.Importer.Rules.PresetTextureImporterRule.asset
   - Assets/Test/AssetImport/Sprite4.png
   _values:
-  - 50baf0e045277bbd691248bf14a76135,2e8a05690107cb9a05281a65ba373263
+  - 4658897cc6c7731c6393c972edcf68e8
+  - a05b91090f29bd484e77fe1f15017b9a
+  - c53bab50852fb138fe431f2df5a612cd,2e8a05690107cb9a05281a65ba373263

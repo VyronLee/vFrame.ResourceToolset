@@ -32,7 +32,7 @@ namespace vFrame.ResourceToolset.Editor.Windows.Importer
 
         [ShowInInspector]
         [PropertyOrder(1)]
-        [TableList(HideToolbar = true, AlwaysExpanded = true, ShowPaging = false, DrawScrollView = false, IsReadOnly = true)]
+        [TableList(HideToolbar = true, AlwaysExpanded = true, ShowPaging = false, IsReadOnly = true)]
         [TitleGroup("Importer Rules")]
         private List<AssetImporterRuleGroup> _groups = new List<AssetImporterRuleGroup>();
 
@@ -76,9 +76,14 @@ namespace vFrame.ResourceToolset.Editor.Windows.Importer
         [HorizontalGroup("Operation/1")]
         [PropertyOrder(4)]
         private void CreateImporterRule() {
+            var pos = new Rect {
+                x = position.width / 2 - 300,
+                y = 50,
+                width = 600,
+            };
             var selector = new AssetImporterRuleSelector();
             selector.SelectionConfirmed += CreateRuleInternal;
-            selector.ShowInPopup(600);
+            selector.ShowInPopup(pos);
         }
 
         [ShowInInspector]

@@ -20,5 +20,5 @@ MonoBehaviour:
       _includeSubFolders: 1
       _excludeRegex: 
     _filterByFilePath:
-      _filePath: 
+      _filePaths: []
   _isReadable: 0
