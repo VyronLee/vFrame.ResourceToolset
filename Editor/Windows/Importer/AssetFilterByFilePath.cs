@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Collections.Generic;
 using Sirenix.OdinInspector;
 using UnityEngine;
 
@@ -8,20 +9,36 @@ namespace vFrame.ResourceToolset.Editor.Windows.Importer
     [HideReferenceObjectPicker]
     internal class AssetFilterByFilePath : AssetFilterBase
     {
-        #pragma warning disable 649
+        #pragma warning disable 649, 414
 
         [SerializeField]
         [LabelWidth(200)]
-        private string _filePath;
+        [VerticalGroup("1")]
+        [ListDrawerSettings(HideAddButton = true, ShowPaging = false)]
+        private List<string> _filePaths;
+
+        [ShowInInspector]
+        [HideLabel]
+        [DisplayAsString]
+        [VerticalGroup("1")]
+        [HorizontalGroup("1/2")]
+        private string _padding = "";
+
+        [VerticalGroup("1")]
+        [HorizontalGroup("1/2", Width = 100)]
+        [Button(ButtonSizes.Small)]
+        private void AddFile() {
+            _filePaths.Add("");
+        }
 
         #pragma warning restore 649
 
         public override string[] GetFiles() {
-            return new[] { _filePath };
+            return _filePaths.ToArray();
         }
 
         public override bool FilterTest(string path) {
-            return _filePath.Equals(path);
+            return _filePaths.Contains(path);
         }
     }
 }
