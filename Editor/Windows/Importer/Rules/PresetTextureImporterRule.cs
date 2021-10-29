@@ -4,6 +4,7 @@ using UnityEditor;
 using UnityEngine;
 using vFrame.ResourceToolset.Editor.Common;
 using vFrame.ResourceToolset.Editor.Exceptions;
+using vFrame.ResourceToolset.Editor.Utils;
 
 namespace vFrame.ResourceToolset.Editor.Windows.Importer.Rules
 {
@@ -22,6 +23,13 @@ namespace vFrame.ResourceToolset.Editor.Windows.Importer.Rules
         [TitleGroup(GroupName + "/Texture Import Setting")]
         [HideLabel]
         private PresetTextureImportSetting _importSetting = new PresetTextureImportSetting();
+
+        [SerializeField]
+        [VerticalGroup(GroupName)]
+        [TitleGroup(GroupName + "/Texture Import Platform Setting")]
+        [LabelText("Auto detect alpha channel to choose RGB or RGBA")]
+        [ToggleLeft]
+        private bool _autoDetectAlphaChannel = true;
 
         [SerializeField]
         [VerticalGroup(GroupName)]
@@ -51,23 +59,17 @@ namespace vFrame.ResourceToolset.Editor.Windows.Importer.Rules
             _standalonePlatformSetting.Advance = _advanceMode;
         }
 
-        private static bool SetImporterValueIfEnable(ToggleableField toggleField, object importer, string importerFiledName) {
+        private static bool SetImporterValueIfEnable(ToggleableField toggleField, object importer, string importerFieldName) {
             if (!toggleField.Enabled) {
                 return false;
             }
 
-            var inputPropertyInfo = toggleField.GetType().GetProperty("Value");
-            if (null == inputPropertyInfo) {
-                throw new ResourceToolsetException("Toggle field does not has 'Value' property.");
+            var newValue = ReflectionUtils.GetPropertyValue(toggleField, "Value");
+            var prevValue = ReflectionUtils.GetPropertyValue(importer, importerFieldName);
+            if (prevValue == newValue) {
+                return false;
             }
-
-            var exportPropertyInfo = importer.GetType().GetProperty(importerFiledName);
-            if (null == exportPropertyInfo) {
-                throw new ResourceToolsetException($"Importer does not has '{importerFiledName}' property.");
-            }
-
-            var value = inputPropertyInfo.GetValue(toggleField, null);
-            exportPropertyInfo.SetValue(importer, value);
+            ReflectionUtils.SetPropertyValue(importer, importerFieldName, newValue);
             return true;
         }
 
@@ -106,7 +108,10 @@ namespace vFrame.ResourceToolset.Editor.Windows.Importer.Rules
             return ret;
         }
 
-        private bool UpdatePlatformSettings(PresetTextureImportPlatformSetting inputSettings, TextureImporterPlatformSettings outputSettings) {
+        private bool UpdatePlatformSettings(PresetTextureImportPlatformSetting inputSettings,
+            TextureImporterPlatformSettings outputSettings,
+            TextureImporter importer) {
+
             // ReSharper disable once ReplaceWithSingleAssignment.False
             var ret = false;
             if (SetImporterValueIfEnable(inputSettings.Override, outputSettings, "overridden")) {
@@ -117,10 +122,17 @@ namespace vFrame.ResourceToolset.Editor.Windows.Importer.Rules
                 && SetImporterValueIfEnable(inputSettings.MaxSize, outputSettings, "maxTextureSize")) {
                 ret = true;
             }
-            if (inputSettings.Override.Enabled
-                && inputSettings.Override.Value
-                && SetImporterValueIfEnable(inputSettings.TextureFormat, outputSettings, "format")) {
-                ret = true;
+            if (inputSettings.Override.Enabled && inputSettings.Override.Value && inputSettings.TextureFormat.Enabled) {
+                var format = inputSettings.TextureFormat.Value;
+                if (_autoDetectAlphaChannel) {
+                    format = AssetImportUtils.RemapTextureFormatType(importer.DoesSourceTextureHaveAlpha(), format);
+                }
+
+                var prevValue = (TextureImporterFormat) ReflectionUtils.GetPropertyValue(outputSettings, "format");
+                if (prevValue != format) {
+                    ReflectionUtils.SetPropertyValue(outputSettings, "format", format);
+                    ret = true;
+                }
             }
             return ret;
         }
@@ -136,17 +148,17 @@ namespace vFrame.ResourceToolset.Editor.Windows.Importer.Rules
 
             // Update platform settings
             var iosPlatformSettings = assetImporter.GetPlatformTextureSettings("iPhone");
-            if (UpdatePlatformSettings(_iOSPlatformSetting, iosPlatformSettings)) {
+            if (UpdatePlatformSettings(_iOSPlatformSetting, iosPlatformSettings, assetImporter)) {
                 assetImporter.SetPlatformTextureSettings(iosPlatformSettings);
                 ret = true;
             }
             var androidPlatformSettings = assetImporter.GetPlatformTextureSettings("Android");
-            if(UpdatePlatformSettings(_androidPlatformSetting, androidPlatformSettings)) {
+            if(UpdatePlatformSettings(_androidPlatformSetting, androidPlatformSettings, assetImporter)) {
                 assetImporter.SetPlatformTextureSettings(androidPlatformSettings);
                 ret = true;
             }
             var standalonePlatformSetting = assetImporter.GetPlatformTextureSettings("Standalone");
-            if (UpdatePlatformSettings(_standalonePlatformSetting, standalonePlatformSetting)) {
+            if (UpdatePlatformSettings(_standalonePlatformSetting, standalonePlatformSetting, assetImporter)) {
                 assetImporter.SetPlatformTextureSettings(standalonePlatformSetting);
                 ret = true;
             }
