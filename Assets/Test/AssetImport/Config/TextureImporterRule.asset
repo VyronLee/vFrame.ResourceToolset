@@ -12,6 +12,7 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: b6c02766bb874f3faa07596eaaedaf3d, type: 3}
   m_Name: TextureImporterRule
   m_EditorClassIdentifier: 
+  _comment: 
   _filter:
     _filterType: 0
     _filterByFolderAndExtension:
@@ -21,4 +22,5 @@ MonoBehaviour:
       _excludeRegex: 
     _filterByFilePath:
       _filePaths: []
+  _ignoreRuleHashOnImport: 0
   _isReadable: 0

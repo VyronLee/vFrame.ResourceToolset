@@ -12,12 +12,14 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: f26140a70a224e30b8f1616b2795733f, type: 3}
   m_Name: PrefabImporterRule
   m_EditorClassIdentifier: 
+  _comment: 
   _filter:
     _filterType: 0
     _filterByFolderAndExtension:
-      _folder: 
+      _folder: 1111111
       _extensions: 
       _includeSubFolders: 1
       _excludeRegex: 
     _filterByFilePath:
       _filePaths: []
+  _ignoreRuleHashOnImport: 0

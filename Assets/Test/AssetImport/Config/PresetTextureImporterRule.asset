@@ -12,6 +12,7 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 032526e032ef452ea1ed79a97bd0c937, type: 3}
   m_Name: PresetTextureImporterRule
   m_EditorClassIdentifier: 
+  _comment: "\u6D4B\u8BD5\u5907\u6CE8"
   _filter:
     _filterType: 1
     _filterByFolderAndExtension:
@@ -24,6 +25,8 @@ MonoBehaviour:
       - Assets/Test/AssetImport/Cache/RuleCacheFile.asset
       - Assets/Test/AssetImport/Cache/vFrame.ResourceToolset.Editor.Windows.Importer.Rules.PresetTextureImporterRule.asset
       - Assets/Test/AssetImport/Sprite4.png
+      - Assets/Test
+  _ignoreRuleHashOnImport: 1
   _importSetting:
     _textureImportType:
       _enable: 1
@@ -52,6 +55,7 @@ MonoBehaviour:
     _wrapMode:
       _enable: 0
       _value: 0
+  _autoDetectAlphaChannel: 1
   _iOSPlatformSetting:
     _override:
       _enable: 1

@@ -8,6 +8,8 @@ using Sirenix.Utilities.Editor;
 using Unity.EditorCoroutines.Editor;
 using UnityEditor;
 using UnityEngine;
+using vFrame.ResourceToolset.Editor.Common;
+using vFrame.ResourceToolset.Editor.Configs;
 using vFrame.ResourceToolset.Editor.Const;
 using vFrame.ResourceToolset.Editor.Utils;
 
@@ -92,12 +94,39 @@ namespace vFrame.ResourceToolset.Editor.Windows.Importer
         [HorizontalGroup("Operation/1")]
         [PropertyOrder(4)]
         private void SaveAllRules() {
-            if (null == _groups) {
+            if (null == _groups || _groups.Count <= 0) {
+                ShowNotification("No importer rules to save.");
                 return;
             }
-            foreach (var group in _groups) {
-                group.Save();
+
+            var rules = new List<AssetImporterRuleBase>();
+            _groups.ForEach(group => rules.AddRange(group.Rules));
+
+            // Mark all rules dirty
+            var index = 0f;
+            foreach (var rule in rules) {
+                var rulePath = AssetDatabase.GetAssetPath(rule);
+                EditorUtility.DisplayProgressBar("Saving", rulePath, ++index/rules.Count);
+                EditorUtility.SetDirty(rule);
             }
+            EditorUtility.ClearProgressBar();
+
+            // Save rule hash
+            var ruleHash = GetOrCreateRuleHashData();
+            foreach (var rule in rules) {
+                if (!AssetDatabase.TryGetGUIDAndLocalFileIdentifier(rule, out var guid, out long localId)) {
+                    continue;
+                }
+                var path = AssetDatabase.GetAssetPath(rule);
+                if (string.IsNullOrEmpty(path)) {
+                    continue;
+                }
+                ruleHash[guid] = AssetProcessorUtils.CalculateAssetHash(path);
+            }
+            EditorUtility.SetDirty(ruleHash);
+            AssetDatabase.SaveAssets();
+
+            ShowNotification("Asset importer rules saved.");
         }
 
         [ShowInInspector]
@@ -179,6 +208,23 @@ namespace vFrame.ResourceToolset.Editor.Windows.Importer
             foreach (var group in _groups) {
                 group.ResetDisplay();
             }
+        }
+
+        private static string GetRuleHashFilePath() {
+            var config = ScriptableObjectUtils.GetScriptableObjectSingleton<AssetImportConfig>();
+            if (!config || string.IsNullOrEmpty(config.RuleHashCacheFile)) {
+                return ToolsetConst.DefaultRuleCacheFilePath;
+            }
+            return config.RuleHashCacheFile;
+        }
+
+        private static AssetHashData GetOrCreateRuleHashData() {
+            var path = GetRuleHashFilePath();
+            var asset = AssetDatabase.LoadAssetAtPath<AssetHashData>(path);
+            if (!asset) {
+                asset = ScriptableObjectUtils.CreateScriptableObjectAtPath<AssetHashData>(path);
+            }
+            return asset;
         }
     }
 }

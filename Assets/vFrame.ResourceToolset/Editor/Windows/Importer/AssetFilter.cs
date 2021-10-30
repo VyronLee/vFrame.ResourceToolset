@@ -1,12 +1,13 @@
 ﻿using System;
 using Sirenix.OdinInspector;
 using UnityEngine;
+using vFrame.ResourceToolset.Editor.Common;
 
 namespace vFrame.ResourceToolset.Editor.Windows.Importer
 {
     [Serializable]
     [HideReferenceObjectPicker]
-    internal class AssetFilter
+    internal class AssetFilter : ICollapsableFieldSummary
     {
         #pragma warning disable 649
 
@@ -31,22 +32,23 @@ namespace vFrame.ResourceToolset.Editor.Windows.Importer
         #pragma warning restore 649
 
         public string[] GetFiles() {
-            switch (_filterType) {
-                case FilterType.ByFolderAndExtension:
-                    return _filterByFolderAndExtension.GetFiles();
-                case FilterType.ByFilePath:
-                    return _filterByFilePath.GetFiles();
-                default:
-                    throw new ArgumentOutOfRangeException();
-            }
+            return GetCurrentFilter().GetFiles();
         }
 
         public bool FilterTest(string path) {
+            return GetCurrentFilter().FilterTest(path);
+        }
+
+        public string GetSummary() {
+            return GetCurrentFilter().GetSummary();
+        }
+
+        private AssetFilterBase GetCurrentFilter() {
             switch (_filterType) {
                 case FilterType.ByFolderAndExtension:
-                    return _filterByFolderAndExtension.FilterTest(path);
+                    return _filterByFolderAndExtension;
                 case FilterType.ByFilePath:
-                    return _filterByFilePath.FilterTest(path);
+                    return _filterByFilePath;
                 default:
                     throw new ArgumentOutOfRangeException();
             }

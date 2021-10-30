@@ -40,5 +40,14 @@ namespace vFrame.ResourceToolset.Editor.Windows.Importer
         public override bool FilterTest(string path) {
             return _filePaths.Contains(path);
         }
+
+        public override string GetSummary() {
+            if (_filePaths.Count <= 3)
+                return string.Join("\n", _filePaths.ToArray());
+
+            var ret = string.Join("\n", _filePaths.GetRange(0, 3).ToArray());
+            ret += "\n...";
+            return ret;
+        }
     }
 }
