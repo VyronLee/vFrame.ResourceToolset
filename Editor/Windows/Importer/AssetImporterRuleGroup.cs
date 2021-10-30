@@ -4,7 +4,6 @@ using System.Collections.Generic;
 using System.Linq;
 using Sirenix.OdinInspector;
 using UnityEditor;
-using UnityEngine;
 using vFrame.ResourceToolset.Editor.Common;
 using vFrame.ResourceToolset.Editor.Configs;
 using vFrame.ResourceToolset.Editor.Const;
@@ -16,25 +15,29 @@ namespace vFrame.ResourceToolset.Editor.Windows.Importer
     [HideReferenceObjectPicker]
     internal class AssetImporterRuleGroup
     {
-        [SerializeField]
+        [ShowInInspector]
         [HideLabel]
         [DisplayAsString]
         [VerticalGroup("Rules")]
         private string _ruleName;
 
-        [SerializeField]
+        [ShowInInspector]
         [HideLabel]
         [TableList(HideToolbar = true, AlwaysExpanded = true, ShowPaging = false, DrawScrollView = false, IsReadOnly = true, ShowIndexLabels = true)]
         [VerticalGroup("Rules")]
-        private List<AssetImporterRuleBase> _rules;
+        private List<CollapsableRule> _rules;
 
         public AssetImporterRuleGroup(IEnumerable<AssetImporterRuleBase> rules) {
-            _rules = rules.ToList();
-            var first = _rules.FirstOrDefault();
+            var rulesAry = rules.ToList();
+            var first = rulesAry.FirstOrDefault();
             if (!first) {
                 return;
             }
             _ruleName = "> " + first.GetType().Name;
+
+            _rules = rulesAry
+                .Select(rule => new CollapsableRule(rule))
+                .ToList();
         }
 
         public void ResetDisplay() {
@@ -42,33 +45,13 @@ namespace vFrame.ResourceToolset.Editor.Windows.Importer
                 return;
             }
             foreach (var rule in _rules) {
-                rule.ResetDisplay();
+                rule.Value.ResetDisplay();
             }
         }
 
+        public AssetImporterRuleBase[] Rules => _rules.Select(v => v.Value).ToArray();
+
         public void Save() {
-            if (null == _rules) {
-                return;
-            }
-
-            foreach (var rule in _rules) {
-                EditorUtility.SetDirty(rule);
-            }
-            AssetDatabase.SaveAssets();
-
-            // Save rule hash
-            var ruleHash = GetOrCreateRuleHashData();
-            foreach (var rule in _rules) {
-                if (!AssetDatabase.TryGetGUIDAndLocalFileIdentifier(rule, out var guid, out long localId)) {
-                    continue;
-                }
-                var path = AssetDatabase.GetAssetPath(rule);
-                if (string.IsNullOrEmpty(path)) {
-                    continue;
-                }
-                ruleHash[guid] = AssetProcessorUtils.CalculateAssetHash(path);
-            }
-            ruleHash.ForceSaveAsset();
         }
 
         public IEnumerator Import() {
@@ -76,7 +59,7 @@ namespace vFrame.ResourceToolset.Editor.Windows.Importer
                 yield break;
             }
             foreach (var rule in _rules) {
-                yield return rule.CoImport();
+                yield return rule.Value.CoImport();
             }
         }
 
@@ -85,26 +68,22 @@ namespace vFrame.ResourceToolset.Editor.Windows.Importer
                 yield break;
             }
             foreach (var rule in _rules) {
-                yield return rule.CoForceImport();
+                yield return rule.Value.CoForceImport();
             }
         }
 
-        private static string GetRuleHashFilePath() {
-            var config = ScriptableObjectUtils.GetScriptableObjectSingleton<AssetImportConfig>();
-            if (!config || string.IsNullOrEmpty(config.RuleHashCacheFile)) {
-                return ToolsetConst.DefaultRuleCacheFilePath;
-            }
-            return config.RuleHashCacheFile;
-        }
+        [Serializable]
+        private class CollapsableRule
+        {
+            [ShowInInspector]
+            [VerticalGroup("RuleSettings")]
+            private CollapsableField<AssetImporterRuleBase> _rule;
 
-        private static AssetHashData GetOrCreateRuleHashData() {
-            var path = GetRuleHashFilePath();
-            var asset = AssetDatabase.LoadAssetAtPath<AssetHashData>(path);
-            if (!asset) {
-                asset = ScriptableObjectUtils.CreateScriptableObjectAtPath<AssetHashData>(path);
+            public CollapsableRule(AssetImporterRuleBase rule) {
+                _rule = new CollapsableField<AssetImporterRuleBase>(rule);
             }
-            return asset;
-        }
 
+            public AssetImporterRuleBase Value => _rule.Value;
+        }
     }
 }

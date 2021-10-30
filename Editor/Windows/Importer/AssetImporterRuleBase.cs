@@ -16,7 +16,7 @@ namespace vFrame.ResourceToolset.Editor.Windows.Importer
 {
     [InlineEditor(InlineEditorObjectFieldModes.Hidden)]
     [HideReferenceObjectPicker]
-    public abstract class AssetImporterRuleBase : ResourceToolsetConfig
+    public abstract class AssetImporterRuleBase : ResourceToolsetConfig, ICollapsableFieldSummary
     {
         #region Public API
 
@@ -52,10 +52,19 @@ namespace vFrame.ResourceToolset.Editor.Windows.Importer
 
         [SerializeField]
         [VerticalGroup(GroupName)]
+        [LabelWidth(130)]
+        private string _comment;
+
+        [SerializeField]
+        [VerticalGroup(GroupName)]
         [InlineProperty]
         [HideLabel]
-        [LabelWidth(LabelWidth)]
         private AssetFilter _filter = new AssetFilter();
+
+        [SerializeField]
+        [VerticalGroup(GroupName)]
+        [ToggleLeft]
+        private bool _ignoreRuleHashOnImport;
 
         [ShowInInspector]
         [VerticalGroup(GroupName)]
@@ -112,9 +121,25 @@ namespace vFrame.ResourceToolset.Editor.Windows.Importer
             var updated = new List<string>();
 
             void OnTravel(string path) {
-                var md5 = AssetProcessorUtils.CalculateAssetHash(path);
-                if (!force && hashData.ContainsKey(path) && hashData[path] == $"{ruleHash},{md5}") {
-                    return;
+                var assetHash = AssetProcessorUtils.CalculateAssetHash(path);
+                // Validate hash changed?
+                if (!force && hashData.ContainsKey(path)) {
+                    var hash = hashData[path];
+                    var hashAry = hash.Split(',');
+                    if (hashAry.Length >= 2) {
+                        var cacheRuleHash = hashAry[0];
+                        var cacheAssetHash = hashAry[1];
+                        if (_ignoreRuleHashOnImport) {
+                            if (cacheAssetHash == assetHash) {
+                                return;
+                            }
+                        }
+                        else {
+                            if (cacheRuleHash == ruleHash && cacheAssetHash == assetHash) {
+                                return;
+                            }
+                        }
+                    }
                 }
 
                 var importer = AssetImporter.GetAtPath(path);
@@ -123,7 +148,7 @@ namespace vFrame.ResourceToolset.Editor.Windows.Importer
                     updated.Add(path);
                 }
 
-                hashData[path] = md5;
+                hashData[path] = assetHash;
             }
 
             var files = _filter.GetFiles();
@@ -261,6 +286,14 @@ namespace vFrame.ResourceToolset.Editor.Windows.Importer
 
         internal IEnumerator CoForceImport() {
             yield return CoImportInternal(true);
+        }
+
+        public string GetSummary() {
+            var ret = _filter.GetSummary();
+            if (!string.IsNullOrEmpty(_comment)) {
+                return $"{_comment}\n{ret}";
+            }
+            return ret;
         }
     }
 

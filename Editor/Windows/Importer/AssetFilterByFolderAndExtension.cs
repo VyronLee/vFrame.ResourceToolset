@@ -94,5 +94,9 @@ namespace vFrame.ResourceToolset.Editor.Windows.Importer
             }
             return true;
         }
+
+        public override string GetSummary() {
+            return _folder;
+        }
     }
 }
