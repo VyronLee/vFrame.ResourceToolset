@@ -49,12 +49,21 @@ namespace vFrame.ResourceToolset.Editor.Utils
         /// </summary>
         /// <returns></returns>
         public static string[] GetSelectedObjectGUIDs(string[] extensions) {
-            var selection = Selection.activeObject;
-            var path = AssetDatabase.GetAssetPath(selection);
-            if (!AssetDatabase.IsValidFolder(path))
-                return new[] {AssetDatabase.AssetPathToGUID(path)};
-
-            return GetObjectGUIDsInDirectory(path, extensions);
+            var selections = Selection.objects;
+            var ret = new List<string>();
+            foreach (var selection in selections) {
+                var path = AssetDatabase.GetAssetPath(selection);
+                if (string.IsNullOrEmpty(path)) {
+                    continue;
+                }
+                if (!AssetDatabase.IsValidFolder(path)) {
+                    ret.Add(AssetDatabase.AssetPathToGUID(path));
+                }
+                else {
+                    ret.AddRange(GetObjectGUIDsInDirectory(path, extensions));
+                }
+            }
+            return ret.ToArray();
         }
 
         public static string[] GetObjectGUIDsInDirectory(string dir, string[] extensions) {

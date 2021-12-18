@@ -16,8 +16,16 @@ namespace vFrame.ResourceToolset.Editor.Menus
             if (paths.Length >= HugeAmountOfAssets && !ReimportAlert()) {
                 return;
             }
-            foreach (var path in paths) {
-                AssetImportUtils.ImportAsset(path);
+
+            var index = 0f;
+            try {
+                foreach (var path in paths) {
+                    EditorUtility.DisplayProgressBar("Importing", path, ++index/paths.Length);
+                    AssetImportUtils.ImportAsset(path);
+                }
+            }
+            finally {
+                EditorUtility.ClearProgressBar();
             }
         }
 

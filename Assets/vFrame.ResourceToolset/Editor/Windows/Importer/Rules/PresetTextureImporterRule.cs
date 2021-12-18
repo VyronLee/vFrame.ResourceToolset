@@ -3,7 +3,6 @@ using Sirenix.OdinInspector;
 using UnityEditor;
 using UnityEngine;
 using vFrame.ResourceToolset.Editor.Common;
-using vFrame.ResourceToolset.Editor.Exceptions;
 using vFrame.ResourceToolset.Editor.Utils;
 
 namespace vFrame.ResourceToolset.Editor.Windows.Importer.Rules
