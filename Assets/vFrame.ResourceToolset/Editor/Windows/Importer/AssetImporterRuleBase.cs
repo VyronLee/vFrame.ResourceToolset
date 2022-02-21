@@ -11,6 +11,7 @@ using vFrame.ResourceToolset.Editor.Common;
 using vFrame.ResourceToolset.Editor.Configs;
 using vFrame.ResourceToolset.Editor.Const;
 using vFrame.ResourceToolset.Editor.Utils;
+using Debug = UnityEngine.Debug;
 
 namespace vFrame.ResourceToolset.Editor.Windows.Importer
 {
@@ -24,8 +25,8 @@ namespace vFrame.ResourceToolset.Editor.Windows.Importer
             return _filter?.FilterTest(path) ?? false;
         }
 
-        public void ApplyTo(string path) {
-            ApplyToInternal(path);
+        public void ApplyTo(string path, bool save = true) {
+            ApplyToInternal(path, save);
         }
 
         public void Import() {
@@ -34,6 +35,10 @@ namespace vFrame.ResourceToolset.Editor.Windows.Importer
 
         public void ForceImport() {
             CoImportInternal(true).RunAndWait();
+        }
+
+        public void Save() {
+            SaveInternal();
         }
 
         #endregion
@@ -98,20 +103,53 @@ namespace vFrame.ResourceToolset.Editor.Windows.Importer
 #pragma warning disable 414
 
         private bool _imported;
+        private AssetHashData _assetHashData;
+        private string _ruleHashCacheFilePath;
+        private readonly List<string> _dirtyFiles = new List<string>();
 
 #pragma warning restore 414
 
-        private void ApplyToInternal(string path) {
+        private void ApplyToInternal(string path, bool save) {
             var hashData = GetOrCreateAssetHashData();
             var importer = AssetImporter.GetAtPath(path);
-            if (!ProcessImport(importer)) {
+
+            var ret = ProcessImport(importer);
+            if (!ret) {
                 return;
             }
-            importer.SaveAndReimport();
-            Debug.Log("Asset re-import: " + path);
 
             var md5 = AssetProcessorUtils.CalculateAssetHash(path);
             hashData[path] = md5;
+
+            if (!save) {
+                _dirtyFiles.Add(path);
+                return;
+            }
+
+            importer.SaveAndReimport();
+            Debug.Log("Asset re-imported: " + path);
+
+            SaveAssetHashData(hashData);
+        }
+
+        private void SaveInternal() {
+            var index = 0f;
+            try {
+                foreach (var dirtyFile in _dirtyFiles) {
+                    EditorUtility.DisplayProgressBar("Saving", dirtyFile, ++index/_dirtyFiles.Count);
+                    var importer = AssetImporter.GetAtPath(dirtyFile);
+                    if (!importer)
+                        continue;
+                    importer.SaveAndReimport();
+                    Debug.Log("Asset re-imported: " + dirtyFile);
+                }
+                _dirtyFiles.Clear();
+            }
+            finally {
+                EditorUtility.ClearProgressBar();
+            }
+
+            var hashData = GetOrCreateAssetHashData();
             SaveAssetHashData(hashData);
         }
 
@@ -120,7 +158,7 @@ namespace vFrame.ResourceToolset.Editor.Windows.Importer
             var ruleHash = GetRuleHash();
             var updated = new List<string>();
 
-            void OnTravel(string path) {
+            void OnTraversal(string path) {
                 var assetHash = AssetProcessorUtils.CalculateAssetHash(path);
                 // Validate hash changed?
                 if (!force && hashData.ContainsKey(path)) {
@@ -163,7 +201,7 @@ namespace vFrame.ResourceToolset.Editor.Windows.Importer
                     var progress = ++index / files.Length;
                     _importProgress = progress / 2;
                     EditorUtility.DisplayProgressBar("Importing", path, progress);
-                    OnTravel(path);
+                    OnTraversal(path);
                     yield return null;
                 }
             }
@@ -207,8 +245,9 @@ namespace vFrame.ResourceToolset.Editor.Windows.Importer
 
         private AssetHashData GetOrCreateAssetHashData() {
             var path = GetHashCacheFilePath();
-            var ret = AssetDatabase.LoadAssetAtPath<AssetHashData>(path);
-            return ret ? ret : CreateInstance<AssetHashData>();
+            _assetHashData = _assetHashData ? _assetHashData : AssetDatabase.LoadAssetAtPath<AssetHashData>(path);
+            _assetHashData = _assetHashData ? _assetHashData : CreateInstance<AssetHashData>();
+            return _assetHashData;
         }
 
         private static string GetRuleHashFilePath() {
@@ -251,9 +290,15 @@ namespace vFrame.ResourceToolset.Editor.Windows.Importer
             }
 
             var path = GetHashCacheFilePath();
-            var dirName = Path.GetDirectoryName(path);
-            if (null != dirName && !Directory.Exists(dirName)) {
-                Directory.CreateDirectory(dirName);
+            try {
+                var dirName = Path.GetDirectoryName(path);
+                if (null != dirName && !Directory.Exists(dirName)) {
+                    Directory.CreateDirectory(dirName);
+                }
+            }
+            catch (ArgumentException e) {
+                Debug.LogError(path);
+                throw;
             }
 
             if (!File.Exists(path)) {
@@ -267,12 +312,14 @@ namespace vFrame.ResourceToolset.Editor.Windows.Importer
         }
 
         private string GetHashCacheFilePath() {
+            if (!string.IsNullOrEmpty(_ruleHashCacheFilePath)) {
+                return _ruleHashCacheFilePath;
+            }
             var config = ScriptableObjectUtils.GetScriptableObjectSingleton<AssetImportConfig>();
             if (!config) {
-                return Application.dataPath;
+                return _ruleHashCacheFilePath = $"{Application.dataPath}/{GetType().FullName}.asset";
             }
-
-            return $"{config.AssetHashCacheDirectory}/{GetType().FullName}.asset";
+            return _ruleHashCacheFilePath = $"{config.AssetHashCacheDirectory}/{GetType().FullName}.asset";
         }
 
         internal void ResetDisplay() {
@@ -289,11 +336,14 @@ namespace vFrame.ResourceToolset.Editor.Windows.Importer
         }
 
         public string GetSummary() {
-            var ret = _filter.GetSummary();
             if (!string.IsNullOrEmpty(_comment)) {
-                return $"{_comment}\n{ret}";
+                return _comment;
             }
-            return ret;
+            var ret = _filter.GetSummary();
+            if (!string.IsNullOrEmpty(ret)) {
+                return ret;
+            }
+            return string.Empty;
         }
     }
 

@@ -24,7 +24,7 @@ namespace vFrame.ResourceToolset.Editor.Menus
                        && AnimationOptimizationUtils.ModifyCurveValuesPrecision(clip, precision);
             }
 
-            AssetProcessorUtils.TravelAndProcessSelectedObjects(ManagedAssetExtensions,
+            AssetProcessorUtils.TraversalAndProcessSelectedObjects(ManagedAssetExtensions,
                 "Modify Animation Curve Precision",
                 Optimize);
         }
@@ -36,7 +36,7 @@ namespace vFrame.ResourceToolset.Editor.Menus
                        && AnimationOptimizationUtils.RemoveScaleCurve(clip);
             }
 
-            AssetProcessorUtils.TravelAndProcessSelectedObjects(ManagedAssetExtensions,
+            AssetProcessorUtils.TraversalAndProcessSelectedObjects(ManagedAssetExtensions,
                 "Remove Animation Scale Curve",
                 Optimize);
         }

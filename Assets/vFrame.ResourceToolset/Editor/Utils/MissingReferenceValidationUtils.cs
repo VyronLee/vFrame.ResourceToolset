@@ -13,7 +13,7 @@ namespace vFrame.ResourceToolset.Editor.Utils
 
         public static bool ValidateAsset(Object obj, out List<string> missing) {
             if (obj)
-                return TravelAsset(obj, out missing, ValidateAsset);
+                return TraversalAsset(obj, out missing, ValidateAsset);
 
             missing = new List<string>();
             return true;
@@ -59,7 +59,7 @@ namespace vFrame.ResourceToolset.Editor.Utils
             var scene = EditorSceneManager.GetActiveScene();
             var roots = scene.GetRootGameObjects();
             foreach (var gameObject in roots) {
-                var ret = TravelAsset(gameObject, ref missing, "", ValidateAsset);
+                var ret = TraversalAsset(gameObject, ref missing, "", ValidateAsset);
                 result &= ret;
             }
             return result;
@@ -70,7 +70,7 @@ namespace vFrame.ResourceToolset.Editor.Utils
 #region Remove Missing Reference
 
         public static bool RemoveMissingReference(Object obj, out List<string> missing) {
-            var ret = TravelAsset(obj, out missing, RemoveMissingReference);
+            var ret = TraversalAsset(obj, out missing, RemoveMissingReference);
             if (!ret) {
                 AssetProcessorUtils.ForceSaveAsset(obj);
             }
@@ -143,7 +143,7 @@ namespace vFrame.ResourceToolset.Editor.Utils
             return true;
         }
 
-        private static bool TravelAsset(Object obj, out List<string> missing, ReferenceHandler handler) {
+        private static bool TraversalAsset(Object obj, out List<string> missing, ReferenceHandler handler) {
             var result = true;
             missing = new List<string>();
 
@@ -153,12 +153,12 @@ namespace vFrame.ResourceToolset.Editor.Utils
 
             switch (obj) {
                 case GameObject gameObject: {
-                    var ret = TravelAsset(gameObject, ref missing, "", handler);
+                    var ret = TraversalAsset(gameObject, ref missing, "", handler);
                     result &= ret;
                 }
                     break;
                 case SceneAsset sceneAsset: {
-                    var ret = TravelAsset(sceneAsset, ref missing, "", handler);
+                    var ret = TraversalAsset(sceneAsset, ref missing, "", handler);
                     result &= ret;
                 }
                     break;
@@ -173,7 +173,7 @@ namespace vFrame.ResourceToolset.Editor.Utils
             return result;
         }
 
-        private static bool TravelAsset(GameObject obj, ref List<string> missing, string propertyParent,
+        private static bool TraversalAsset(GameObject obj, ref List<string> missing, string propertyParent,
             ReferenceHandler handler) {
 
             if (!obj) {
@@ -205,14 +205,14 @@ namespace vFrame.ResourceToolset.Editor.Utils
             // Children game objects
             for (var i = 0; i < obj.transform.childCount; ++i) {
                 var child = obj.transform.GetChild(i).gameObject;
-                var ret = TravelAsset(child, ref missing, $"{propertyParent}./{child.name}", handler);
+                var ret = TraversalAsset(child, ref missing, $"{propertyParent}./{child.name}", handler);
                 result &= ret;
             }
 
             return result;
         }
 
-        private static bool TravelAsset(SceneAsset sceneAsset, ref List<string> missing, string propertyParent,
+        private static bool TraversalAsset(SceneAsset sceneAsset, ref List<string> missing, string propertyParent,
             ReferenceHandler handler) {
 
             if (!sceneAsset) {
@@ -231,7 +231,7 @@ namespace vFrame.ResourceToolset.Editor.Utils
 
             var roots = scene.GetRootGameObjects();
             foreach (var gameObject in roots) {
-                var ret = TravelAsset(gameObject, ref missing, $"{propertyParent}./{gameObject.name}", handler);
+                var ret = TraversalAsset(gameObject, ref missing, $"{propertyParent}./{gameObject.name}", handler);
                 result &= ret;
             }
 

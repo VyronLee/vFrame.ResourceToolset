@@ -89,28 +89,28 @@ namespace vFrame.ResourceToolset.Editor.Utils
             return objects.ToArray();
         }
 
-        public static void TravelAndProcessSelectedObjects(string[] extensions, string title, Func<Object, bool> processor) {
+        public static void TraversalAndProcessSelectedObjects(string[] extensions, string title, Func<Object, bool> processor) {
             var objects = GetSelectedObjectGUIDs(extensions);
-            TravelAndProcessObjects(objects, title, processor);
+            TraversalAndProcessObjects(objects, title, processor);
         }
 
-        public static void TravelAndProcessObjectsInDirectory(string dir, string[] extensions, string title,
+        public static void TraversalAndProcessObjectsInDirectory(string dir, string[] extensions, string title,
             Func<Object, bool> processor) {
             var objects = GetObjectGUIDsInDirectory(dir, extensions);
-            TravelAndProcessObjects(objects, title, processor);
+            TraversalAndProcessObjects(objects, title, processor);
         }
 
-        public static void TravelSelectedObjects(string[] extensions, string title, Action<Object> processor) {
+        public static void TraversalSelectedObjects(string[] extensions, string title, Action<Object> processor) {
             var objects = GetSelectedObjectGUIDs(extensions);
-            TravelObjects(objects, title, processor);
+            TraversalObjects(objects, title, processor);
         }
 
-        public static void TravelObjectsInDirectory(string dir, string[] extensions, string title, Action<Object> processor) {
+        public static void TraversalObjectsInDirectory(string dir, string[] extensions, string title, Action<Object> processor) {
             var objects = GetObjectGUIDsInDirectory(dir, extensions);
-            TravelObjects(objects, title, processor);
+            TraversalObjects(objects, title, processor);
         }
 
-        private static void TravelAndProcessObjects(IReadOnlyCollection<string> objects, string title, Func<Object, bool> processor) {
+        private static void TraversalAndProcessObjects(IReadOnlyCollection<string> objects, string title, Func<Object, bool> processor) {
             var index = 0f;
             var changed = new List<string>();
             try {
@@ -156,7 +156,7 @@ namespace vFrame.ResourceToolset.Editor.Utils
                 + string.Join("\n", changed.ToArray()));
         }
 
-        private static void TravelObjects(IReadOnlyCollection<string> objects, string title, Action<Object> processor) {
+        private static void TraversalObjects(IReadOnlyCollection<string> objects, string title, Action<Object> processor) {
             var index = 0f;
             try {
                 foreach (var objGuid in objects) {

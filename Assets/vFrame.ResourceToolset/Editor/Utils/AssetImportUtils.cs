@@ -1,4 +1,5 @@
-﻿using System.Linq;
+﻿using System;
+using System.Linq;
 using Sirenix.Utilities;
 using UnityEditor;
 using UnityEngine;
@@ -8,25 +9,33 @@ namespace vFrame.ResourceToolset.Editor.Utils
 {
     public static class AssetImportUtils
     {
-        private const string MsgNoAssetImportRuleFound = "No asset importer rule found for path: {0}";
+        private const string MsgNoAssetImportRuleFound = "No asset importer rule found for path: {0}, falling back to default importer.";
 
-        public static void ImportAsset(string path) {
+        private static AssetImporterRules _assetImporterRules;
+
+        public static AssetImporterRuleBase[] ImportAsset(string path, bool save = true) {
             var rules = FindImportRuleOf(path);
             if (null == rules || rules.Length <= 0) {
                 AssetDatabase.ImportAsset(path); // Fallback to builtin import process.
                 Debug.LogWarningFormat(MsgNoAssetImportRuleFound, path);
-                return;
+                return Array.Empty<AssetImporterRuleBase>();
             }
-            rules.ForEach(r => r.ApplyTo(path));
+            rules.ForEach(r => r.ApplyTo(path, false));
+            if (save) {
+                rules.ForEach(r => r.Save());
+            }
+            return rules;
         }
 
         private static AssetImporterRuleBase[] FindImportRuleOf(string path) {
-            var ruleGuids = AssetDatabase.FindAssets($"t:{nameof(AssetImporterRuleBase)}");
-            return ruleGuids
-                .Select(AssetDatabase.GUIDToAssetPath)
-                .Select(AssetDatabase.LoadAssetAtPath<AssetImporterRuleBase>)
-                .Where(rule => rule.FilterTest(path))
-                .ToArray();
+            if (!_assetImporterRules) {
+                var rules = ScriptableObjectUtils.GetScriptableObjectSingleton<AssetImporterRules>();
+                if (null == rules) {
+                    return Array.Empty<AssetImporterRuleBase>();
+                }
+                _assetImporterRules = rules;
+            }
+            return _assetImporterRules.Rules.Where(rule => rule.FilterTest(path)).ToArray();
         }
 
         public static TextureImporterFormat RemapTextureFormatType(bool hasAlpha, TextureImporterFormat format) {
