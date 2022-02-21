@@ -1,6 +1,9 @@
-﻿using UnityEditor;
+﻿using System.Collections.Generic;
+using Sirenix.Utilities;
+using UnityEditor;
 using vFrame.ResourceToolset.Editor.Const;
 using vFrame.ResourceToolset.Editor.Utils;
+using vFrame.ResourceToolset.Editor.Windows.Importer;
 
 namespace vFrame.ResourceToolset.Editor.Menus
 {
@@ -17,11 +20,19 @@ namespace vFrame.ResourceToolset.Editor.Menus
                 return;
             }
 
-            var index = 0f;
+            var rulesApplied = new HashSet<AssetImporterRuleBase>();
             try {
+                var index = 0f;
                 foreach (var path in paths) {
                     EditorUtility.DisplayProgressBar("Importing", path, ++index/paths.Length);
-                    AssetImportUtils.ImportAsset(path);
+                    var ret = AssetImportUtils.ImportAsset(path, false);
+                    ret.ForEach(r => rulesApplied.Add(r));
+                }
+
+                index = 0f;
+                foreach (var rule in rulesApplied) {
+                    EditorUtility.DisplayProgressBar("Saving", rule.GetSummary(), ++index/rulesApplied.Count);
+                    rule.Save();
                 }
             }
             finally {

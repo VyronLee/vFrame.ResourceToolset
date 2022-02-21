@@ -8,8 +8,6 @@ using Sirenix.Utilities.Editor;
 using Unity.EditorCoroutines.Editor;
 using UnityEditor;
 using UnityEngine;
-using vFrame.ResourceToolset.Editor.Common;
-using vFrame.ResourceToolset.Editor.Configs;
 using vFrame.ResourceToolset.Editor.Const;
 using vFrame.ResourceToolset.Editor.Utils;
 
@@ -36,11 +34,13 @@ namespace vFrame.ResourceToolset.Editor.Windows.Importer
         [PropertyOrder(1)]
         [TableList(HideToolbar = true, AlwaysExpanded = true, ShowPaging = false, IsReadOnly = true)]
         [TitleGroup("Importer Rules")]
-        private List<AssetImporterRuleGroup> _groups = new List<AssetImporterRuleGroup>();
+        [ShowIf("@_rules.Count > 0")]
+        [HideLabel]
+        private List<AssetImporterRules> _rules = new List<AssetImporterRules>();
 
         [ShowInInspector]
         [PropertyOrder(2)]
-        [ShowIf("@_groups.Count <= 0")]
+        [ShowIf("@_rules.Count <= 0")]
         [DisplayAsString]
         [TitleGroup("Importer Rules")]
         [HideLabel]
@@ -59,7 +59,9 @@ namespace vFrame.ResourceToolset.Editor.Windows.Importer
         [HorizontalGroup("Importer Rules/Refresh", Width = 150)]
         [PropertyOrder(3)]
         private void ResearchRules() {
-            ResearchRuleInternal();
+            if (null != Rules) {
+                Rules.ResearchRule();
+            }
             ShowNotification("Research finished.");
         }
 
@@ -93,76 +95,47 @@ namespace vFrame.ResourceToolset.Editor.Windows.Importer
         [TitleGroup("Operation")]
         [HorizontalGroup("Operation/1")]
         [PropertyOrder(4)]
-        private void SaveAllRules() {
-            if (null == _groups || _groups.Count <= 0) {
+        private void ImportAll() {
+            if (null == Rules) {
+                return;
+            }
+
+            IEnumerator ImportInternal() {
+                yield return Rules.CoImport();
+            }
+            EditorCoroutineUtility.StartCoroutine(ImportInternal(), this);
+        }
+
+        [ShowInInspector]
+        [Button(ButtonSizes.Medium)]
+        [TitleGroup("Operation")]
+        [HorizontalGroup("Operation/1")]
+        [PropertyOrder(4)]
+        private void ForceImportAll() {
+            if (null == Rules) {
+                return;
+            }
+
+            IEnumerator ImportInternal() {
+                yield return Rules.CoForceImport();
+            }
+            EditorCoroutineUtility.StartCoroutine(ImportInternal(), this);
+        }
+
+        [ShowInInspector]
+        [Button(ButtonSizes.Large)]
+        [TitleGroup("Operation")]
+        [HorizontalGroup("Operation/2")]
+        [PropertyOrder(8)]
+        private void Save() {
+            if (null == Rules || Rules.Empty()) {
                 ShowNotification("No importer rules to save.");
                 return;
             }
 
-            var rules = new List<AssetImporterRuleBase>();
-            _groups.ForEach(group => rules.AddRange(group.Rules));
-
-            // Mark all rules dirty
-            var index = 0f;
-            foreach (var rule in rules) {
-                var rulePath = AssetDatabase.GetAssetPath(rule);
-                EditorUtility.DisplayProgressBar("Saving", rulePath, ++index/rules.Count);
-                EditorUtility.SetDirty(rule);
-            }
-            EditorUtility.ClearProgressBar();
-
-            // Save rule hash
-            var ruleHash = GetOrCreateRuleHashData();
-            foreach (var rule in rules) {
-                if (!AssetDatabase.TryGetGUIDAndLocalFileIdentifier(rule, out var guid, out long localId)) {
-                    continue;
-                }
-                var path = AssetDatabase.GetAssetPath(rule);
-                if (string.IsNullOrEmpty(path)) {
-                    continue;
-                }
-                ruleHash[guid] = AssetProcessorUtils.CalculateAssetHash(path);
-            }
-            EditorUtility.SetDirty(ruleHash);
-            AssetDatabase.SaveAssets();
+            Rules.Save();
 
             ShowNotification("Asset importer rules saved.");
-        }
-
-        [ShowInInspector]
-        [Button(ButtonSizes.Medium)]
-        [TitleGroup("Operation")]
-        [HorizontalGroup("Operation/2")]
-        [PropertyOrder(4)]
-        private void ImportAll() {
-            if (null == _groups) {
-                return;
-            }
-
-            IEnumerator ImportInternal() {
-                foreach (var group in _groups) {
-                    yield return group.Import();
-                }
-            }
-            EditorCoroutineUtility.StartCoroutine(ImportInternal(), this);
-        }
-
-        [ShowInInspector]
-        [Button(ButtonSizes.Medium)]
-        [TitleGroup("Operation")]
-        [HorizontalGroup("Operation/2")]
-        [PropertyOrder(4)]
-        private void ForceImportAll() {
-            if (null == _groups) {
-                return;
-            }
-
-            IEnumerator ImportInternal() {
-                foreach (var group in _groups) {
-                    yield return group.ForceImport();
-                }
-            }
-            EditorCoroutineUtility.StartCoroutine(ImportInternal(), this);
         }
 
         #pragma warning restore 414
@@ -170,24 +143,18 @@ namespace vFrame.ResourceToolset.Editor.Windows.Importer
         // ==========================================================
         // Processor
 
+        private AssetImporterRules Rules => _rules.Count > 0 ? _rules[0] : null;
+
         protected override void Initialize() {
-            ResearchRuleInternal();
-        }
-
-        private void ResearchRuleInternal() {
-            var ruleGuids = AssetDatabase.FindAssets($"t:{nameof(AssetImporterRuleBase)}");
-            var groups = new Dictionary<Type, List<AssetImporterRuleBase>>();
-            foreach (var ruleGuid in ruleGuids) {
-                var rulePath = AssetDatabase.GUIDToAssetPath(ruleGuid);
-                var rule = AssetDatabase.LoadAssetAtPath<AssetImporterRuleBase>(rulePath);
-                var t = rule.GetType();
-                if (!groups.TryGetValue(t, out var list)) {
-                    list = groups[t] = new List<AssetImporterRuleBase>();
-                }
-                list.Add(rule);
+            var rules = ScriptableObjectUtils.GetScriptableObjectSingleton<AssetImporterRules>();
+            if (!rules) {
+                rules = ScriptableObjectUtils.CreateScriptableObjectAtPath<AssetImporterRules>(
+                    ToolsetConst.DefaultAssetImporterRulesFilePath);
             }
+            rules.Initialize();
 
-            _groups = groups.Select(kv => new AssetImporterRuleGroup(kv.Value)).ToList();
+            _rules.Clear();
+            _rules.Add(rules);
         }
 
         private void CreateRuleInternal(IEnumerable<Type> types) {
@@ -196,35 +163,21 @@ namespace vFrame.ResourceToolset.Editor.Windows.Importer
                 return;
             }
 
-            if (ScriptableObjectUtils.ConfirmCreateScriptableObject(t)) {
-                ResearchRuleInternal();
+            // Save rules first
+            Rules.Save();
+
+            var rule = ScriptableObjectUtils.ConfirmCreateScriptableObject(t) as AssetImporterRuleBase;
+            if (!rule) {
+                return;
             }
+            Rules.Add(rule);
         }
 
         private void ResetDisplayInternal() {
-            if (null == _groups) {
+            if (null == Rules) {
                 return;
             }
-            foreach (var group in _groups) {
-                group.ResetDisplay();
-            }
-        }
-
-        private static string GetRuleHashFilePath() {
-            var config = ScriptableObjectUtils.GetScriptableObjectSingleton<AssetImportConfig>();
-            if (!config || string.IsNullOrEmpty(config.RuleHashCacheFile)) {
-                return ToolsetConst.DefaultRuleCacheFilePath;
-            }
-            return config.RuleHashCacheFile;
-        }
-
-        private static AssetHashData GetOrCreateRuleHashData() {
-            var path = GetRuleHashFilePath();
-            var asset = AssetDatabase.LoadAssetAtPath<AssetHashData>(path);
-            if (!asset) {
-                asset = ScriptableObjectUtils.CreateScriptableObjectAtPath<AssetHashData>(path);
-            }
-            return asset;
+            Rules.ResetDisplay();
         }
     }
 }

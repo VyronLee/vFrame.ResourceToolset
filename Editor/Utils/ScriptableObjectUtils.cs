@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Diagnostics.CodeAnalysis;
+using System.IO;
 using System.Linq;
 using UnityEditor;
 using UnityEngine;
@@ -32,6 +33,11 @@ namespace vFrame.ResourceToolset.Editor.Utils
         }
 
         public static ScriptableObject CreateScriptableObjectAtPath(Type t, string path) {
+            var dir = Path.GetDirectoryName(path);
+            if (!string.IsNullOrEmpty(dir) && !Directory.Exists(dir)) {
+                Directory.CreateDirectory(dir);
+            }
+
             var inst = ScriptableObject.CreateInstance(t);
             AssetDatabase.CreateAsset(inst, path);
             return inst;

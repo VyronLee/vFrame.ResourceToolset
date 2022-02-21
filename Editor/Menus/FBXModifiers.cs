@@ -21,14 +21,14 @@ namespace vFrame.ResourceToolset.Editor.Menus
                 throw new BuiltinReplacementAssetNotAssignedException("FBX internal material must be specified.");
             }
 
-            AssetProcessorUtils.TravelAndProcessSelectedObjects(ManagedAssetExtensions,
+            AssetProcessorUtils.TraversalAndProcessSelectedObjects(ManagedAssetExtensions,
                 "Replace FBX Internal Materials",
                 v => FBXInternalMaterialReplacementUtils.ReplaceMaterial(AssetDatabase.GetAssetPath(v), newMaterial));
         }
 
         [MenuItem(ToolsetConst.AssetsMenuDir + "FBX/Remove FBX External Objects")]
         private static void RemoveExternalObjects() {
-            AssetProcessorUtils.TravelAndProcessSelectedObjects(ManagedAssetExtensions,
+            AssetProcessorUtils.TraversalAndProcessSelectedObjects(ManagedAssetExtensions,
                 "Remove FBX External Objects",
                 v => FBXInternalMaterialReplacementUtils.RemoveExternalObject(AssetDatabase.GetAssetPath(v)));
         }

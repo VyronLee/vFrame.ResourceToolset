@@ -33,7 +33,7 @@ namespace vFrame.ResourceToolset.Editor.Menus
                 missing.Add(info);
             }
 
-            AssetProcessorUtils.TravelSelectedObjects(ManagedAssetExtensions,
+            AssetProcessorUtils.TraversalSelectedObjects(ManagedAssetExtensions,
                 "Find Missing Reference",
                 Validate);
 
@@ -61,7 +61,7 @@ namespace vFrame.ResourceToolset.Editor.Menus
                 missing.Add(info);
             }
 
-            AssetProcessorUtils.TravelSelectedObjects(ManagedAssetExtensions,
+            AssetProcessorUtils.TraversalSelectedObjects(ManagedAssetExtensions,
                 "Remove Missing Reference",
                 Validate);
 

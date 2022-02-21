@@ -10,7 +10,7 @@ namespace vFrame.ResourceToolset.Editor.Menus
 
         [MenuItem(ToolsetConst.AssetsMenuDir + "Replace Builtin Assets")]
         private static void ReplaceBuiltinAssets() {
-            AssetProcessorUtils.TravelAndProcessSelectedObjects(ManagedAssetExtensions,
+            AssetProcessorUtils.TraversalAndProcessSelectedObjects(ManagedAssetExtensions,
                 "Replace Builtin Assets",
                 BuiltinAssetsReplacementUtils.ReplaceBuiltinAssets);
         }
