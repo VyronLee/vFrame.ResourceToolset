@@ -4,6 +4,9 @@
   "displayName": "vFrame Resource Toolset",
   "description": "A bundle of resource tools to optimize your game assets!",
   "unity": "2018.4",
+  "dependencies": {
+    "com.unity.vframe.core": "1.0.3"
+  },
   "keywords": [
     "vFrame"
   ],
