@@ -13,5 +13,7 @@ namespace vFrame.ResourceToolset.Editor.Const
 
         public const string DefaultRuleCacheFilePath = "Assets/RuleCacheFile.asset";
         public const string DefaultAssetImporterRulesFilePath = "Assets/Editor/ResourceToolset/AssetImporterRules.asset";
+
+        public const string AssetIdPrefix = "ASSET_ID_";
     }
 }
