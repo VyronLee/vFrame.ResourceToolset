@@ -92,6 +92,7 @@ namespace vFrame.ResourceToolset.Editor.Windows.IdMapper
         private void Initialize() {
             _assetGroups.Clear();
             _assetGroups.AddRange(_aimSO.Groups.Select(CreateGroupFromData));
+            _exportJsonPath = _aimSO.ExportJsonPath;
         }
 
         private CollapsableField<AIMAssetGroup> CreateGroupFromData(AssetIdsMapperGroup data) {
