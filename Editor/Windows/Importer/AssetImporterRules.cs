@@ -159,6 +159,8 @@ namespace vFrame.ResourceToolset.Editor.Windows.Importer
         [Serializable]
         private class CollapsableRule
         {
+#pragma warning disable 0414
+
             [ShowInInspector]
             [VerticalGroup("RuleSettings")]
             [ShowIf("@_rule != null")]
@@ -171,6 +173,8 @@ namespace vFrame.ResourceToolset.Editor.Windows.Importer
             [HideLabel]
             [DisplayAsString]
             private string _tips = "<Missing>";
+
+#pragma warning disable 0414
 
             public CollapsableRule(AssetImporterRuleBase rule) {
                 if (!rule) {

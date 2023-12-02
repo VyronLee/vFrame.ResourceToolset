@@ -55,6 +55,8 @@ namespace vFrame.ResourceToolset.Editor.Windows.Importer
         protected const string GroupName2 = GroupName + "/Processor";
         protected const int LabelWidth = 200;
 
+#pragma warning disable 0649, 0414
+
         [SerializeField]
         [VerticalGroup(GroupName)]
         [LabelWidth(130)]
@@ -79,6 +81,8 @@ namespace vFrame.ResourceToolset.Editor.Windows.Importer
         [ProgressBar(0f, 1f, 0.1695888f, 0.5964116f, 0.9716981f)]
         [ReadOnly]
         private float _importProgress;
+
+#pragma warning restore 0649, 0414
 
         [VerticalGroup(GroupName)]
         [HorizontalGroup(GroupName2, Width = 100)]
@@ -296,7 +300,7 @@ namespace vFrame.ResourceToolset.Editor.Windows.Importer
                     Directory.CreateDirectory(dirName);
                 }
             }
-            catch (ArgumentException e) {
+            catch (ArgumentException) {
                 Debug.LogError(path);
                 throw;
             }
