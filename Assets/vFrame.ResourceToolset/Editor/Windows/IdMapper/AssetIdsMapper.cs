@@ -27,7 +27,7 @@ namespace vFrame.ResourceToolset.Editor.Windows.IdMapper
         [ShowInInspector]
         [VerticalGroup("Asset Groups")]
         [Indent]
-        [FilePath(Extensions = "json", RequireExistingPath = false)]
+        [Sirenix.OdinInspector.FilePath(Extensions = "json", RequireExistingPath = false)]
         private string _exportJsonPath;
 
         [ShowInInspector]

@@ -90,7 +90,11 @@ namespace vFrame.ResourceToolset.Editor.Utils
                 serializedObject.ApplyModifiedPropertiesWithoutUndo();
             }
 
+#if UNITY_2019_3_OR_NEWER
+            importer.materialImportMode = ModelImporterMaterialImportMode.None;
+#else
             importer.importMaterials = false;
+#endif
             return ret;
         }
     }

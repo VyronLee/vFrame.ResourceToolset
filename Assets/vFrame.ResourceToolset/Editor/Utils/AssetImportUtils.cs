@@ -53,6 +53,9 @@ namespace vFrame.ResourceToolset.Editor.Utils
                         return TextureImporterFormat.ETC2_RGBA8;
                     case TextureImporterFormat.ETC2_RGB4:
                         return TextureImporterFormat.ETC2_RGBA8;
+                    case TextureImporterFormat.ETC_RGB4Crunched:
+                        return TextureImporterFormat.ETC2_RGBA8Crunched;
+#if !UNITY_2019_1_OR_NEWER
                     case TextureImporterFormat.ASTC_RGB_4x4:
                         return TextureImporterFormat.ASTC_RGBA_4x4;
                     case TextureImporterFormat.ASTC_RGB_5x5:
@@ -65,8 +68,8 @@ namespace vFrame.ResourceToolset.Editor.Utils
                         return TextureImporterFormat.ASTC_RGBA_10x10;
                     case TextureImporterFormat.ASTC_RGB_12x12:
                         return TextureImporterFormat.ASTC_RGBA_12x12;
-                    case TextureImporterFormat.ETC_RGB4Crunched:
-                        return TextureImporterFormat.ETC2_RGBA8Crunched;
+
+#endif
                     default:
                         return format;
                 }
@@ -85,6 +88,7 @@ namespace vFrame.ResourceToolset.Editor.Utils
                         return TextureImporterFormat.PVRTC_RGB4;
                     case TextureImporterFormat.ETC2_RGBA8:
                         return TextureImporterFormat.ETC2_RGB4;
+#if !UNITY_2019_1_OR_NEWER
                     case TextureImporterFormat.ASTC_RGBA_4x4:
                         return TextureImporterFormat.ASTC_RGB_4x4;
                     case TextureImporterFormat.ASTC_RGBA_5x5:
@@ -97,6 +101,7 @@ namespace vFrame.ResourceToolset.Editor.Utils
                         return TextureImporterFormat.ASTC_RGB_10x10;
                     case TextureImporterFormat.ASTC_RGBA_12x12:
                         return TextureImporterFormat.ASTC_RGB_12x12;
+#endif
                     default:
                         return format;
                 }

@@ -270,7 +270,9 @@ namespace vFrame.ResourceToolset.Editor.Windows.Migrate
             var realObjects = new HashSet<Object>();
             realObjects.AddRange(LoadMainAndSubAssets(files));
             realObjects.AddRange(LoadAllAssetsInFolder(folders));
-            realObjects = realObjects.Where(v => _realObjectFilter.FilterTest(v)).ToHashSet();
+            var filtered = realObjects.Where(v => _realObjectFilter.FilterTest(v)).ToList();
+            realObjects.Clear();
+            realObjects.AddRange(filtered);
 
             _realObjects = realObjects.ToList();
         }
