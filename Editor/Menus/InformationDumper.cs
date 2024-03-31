@@ -20,7 +20,7 @@ namespace vFrame.ResourceToolset.Editor.Menus
             InformationDumpUtils.PrintAssetGuid(path);
         }
 
-        [MenuItem(ToolsetConst.AssetsMenuDir + "Print/Print Asset Guid And FileId")]
+        [MenuItem(ToolsetConst.AssetsMenuDir + "Print/Print Asset Guid And File Id")]
         private static void PrintAssetGuidAndFileId() {
             var obj = Selection.activeObject;
             InformationDumpUtils.PrintAssetGuidAndFileId(obj);

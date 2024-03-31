@@ -2,7 +2,7 @@
 
 namespace vFrame.ResourceToolset.Editor.Utils
 {
-    public static class ReflectionUtils
+    internal static class ReflectionUtils
     {
         public static void SetPropertyValue(object obj, string propertyName, object value) {
             var propertyInfo = obj.GetType().GetProperty(propertyName);

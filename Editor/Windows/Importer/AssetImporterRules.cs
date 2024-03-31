@@ -105,7 +105,7 @@ namespace vFrame.ResourceToolset.Editor.Windows.Importer
             _rules.ForEach(v => v.ResetDisplay());
         }
 
-        public void ResearchRule() {
+        public void SearchRule() {
             var ruleGuids = AssetDatabase.FindAssets($"t:{nameof(AssetImporterRuleBase)}");
             var ret = new List<AssetImporterRuleBase>();
             foreach (var ruleGuid in ruleGuids) {
