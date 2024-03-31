@@ -58,11 +58,11 @@ namespace vFrame.ResourceToolset.Editor.Windows.Importer
         [TitleGroup("Importer Rules")]
         [HorizontalGroup("Importer Rules/Refresh", Width = 150)]
         [PropertyOrder(3)]
-        private void ResearchRules() {
+        private void SearchRules() {
             if (null != Rules) {
-                Rules.ResearchRule();
+                Rules.SearchRule();
             }
-            ShowNotification("Research finished.");
+            ShowNotification("Search finished.");
         }
 
         [ShowInInspector]
