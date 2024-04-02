@@ -60,6 +60,16 @@ namespace vFrame.ResourceToolset.Editor.Windows.Settings
             _settingConfig = ScriptableObjectUtils.ConfirmCreateScriptableObject<ResourceToolsetSettingConfig>();
         }
 
+        [PropertySpace(50)]
+        [Button(ButtonSizes.Gigantic)]
+        [ShowIf("@_settingConfig")]
+        [PropertyOrder(4)]
+        private void Save() {
+            if (_settingConfig) {
+                _settingConfig.Save();
+            }
+        }
+
         // ==========================================================
         // Processor
 

@@ -57,5 +57,18 @@ namespace vFrame.ResourceToolset.Editor.Configs
 
         public AnimationOptimizationConfig AnimationOptimizationConfig => _animationOptimizationConfig;
         public BuiltinAssetConfig BuiltinAssetConfig => _builtinAssetConfig;
+
+        public void Save() {
+            if (_animationOptimizationConfig) {
+                _animationOptimizationConfig.ForceSaveAsset();
+            }
+            if (_builtinAssetConfig) {
+                _builtinAssetConfig.ForceSaveAsset();
+            }
+            if (_assetImportConfig) {
+                _assetImportConfig.ForceSaveAsset();
+            }
+            this.ForceSaveAsset();
+        }
     }
 }
