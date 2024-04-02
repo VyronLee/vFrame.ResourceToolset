@@ -1,0 +1,22 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!114 &11400000
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 671461ccda544068b8185af29c1136f7, type: 3}
+  m_Name: vFrame.ResourceToolset.Editor.Windows.Importer.Rules.PresetTextureImporterRule
+  m_EditorClassIdentifier: 
+  _keys:
+  - Assets/Test/AssetImport/Cache/RuleCacheFile.asset
+  - Assets/Test/AssetImport/Cache/vFrame.ResourceToolset.Editor.Windows.Importer.Rules.PresetTextureImporterRule.asset
+  - Assets/Test/AssetImport/Sprite4.png
+  _values:
+  - 4658897cc6c7731c6393c972edcf68e8
+  - a05b91090f29bd484e77fe1f15017b9a
+  - c53bab50852fb138fe431f2df5a612cd,2e8a05690107cb9a05281a65ba373263
