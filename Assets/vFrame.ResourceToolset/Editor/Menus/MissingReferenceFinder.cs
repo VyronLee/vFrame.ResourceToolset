@@ -18,7 +18,7 @@ namespace vFrame.ResourceToolset.Editor.Menus
             ".asset"
         };
 
-        [MenuItem(ToolsetConst.AssetsMenuDir + "/Missing Reference/Find Missing Reference")]
+        [MenuItem(ToolsetConst.AssetsMenuDir + "Missing Reference/Find Missing Reference")]
         private static void FindMissingReference() {
             var missing = new List<string>();
             void Validate(Object obj) {
@@ -46,7 +46,7 @@ namespace vFrame.ResourceToolset.Editor.Menus
                       + string.Join("\n", missing.ToArray()));
         }
 
-        [MenuItem(ToolsetConst.AssetsMenuDir + "/Missing Reference/Remove Missing Reference")]
+        [MenuItem(ToolsetConst.AssetsMenuDir + "Missing Reference/Remove Missing Reference")]
         private static void RemoveMissingReference() {
             var missing = new List<string>();
             void Validate(Object obj) {
