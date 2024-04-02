@@ -4,8 +4,6 @@
 
 As the development of a project progresses, the number of resource files in the project will increase, making management more difficult. It often becomes necessary to organize a large number of resources, identify redundant or unused assets, investigate which resources in the project have unreasonable parameter settings, or perform batch replacement and modification operations on resources. This repository's toolset is created to address the aforementioned issues.
 
-[English Version (Power by ChatGPT)](./README_en.md)
-
 ## Table of Contents
 
 * [Overview](#overview)
