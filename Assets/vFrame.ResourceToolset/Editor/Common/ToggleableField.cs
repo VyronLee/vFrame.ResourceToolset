@@ -15,8 +15,8 @@ namespace vFrame.ResourceToolset.Editor.Common
         protected const string GroupName = "Horizontal";
 
         [SerializeField]
-        [HorizontalGroup(GroupName, Width = 10)]
-        [LabelText("@_label")]
+        [HorizontalGroup(GroupName, Width = 200)]
+        [LabelText("$_label")]
         [ToggleLeft]
         private bool _enable;
 
@@ -44,6 +44,30 @@ namespace vFrame.ResourceToolset.Editor.Common
         }
 
         public ToggleableFieldInt(string label, int value = 0) : base(label) {
+            _value = value;
+        }
+
+        public override string ToString() {
+            return _value.ToString();
+        }
+    }
+
+    [Serializable]
+    [HideLabel]
+    internal class ToggleableFieldUInt : ToggleableField
+    {
+        [SerializeField]
+        [HideLabel]
+        [HorizontalGroup(GroupName)]
+        [EnableIf("Enabled")]
+        public uint _value;
+
+        public uint Value {
+            get => _value;
+            set => _value = value;
+        }
+
+        public ToggleableFieldUInt(string label, uint value = 0) : base(label) {
             _value = value;
         }
 

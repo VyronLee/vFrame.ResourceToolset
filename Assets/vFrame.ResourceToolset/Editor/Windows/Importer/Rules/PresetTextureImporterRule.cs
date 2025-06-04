@@ -1,6 +1,8 @@
 ﻿using System;
+using System.IO;
 using Sirenix.OdinInspector;
 using UnityEditor;
+using UnityEditor.Build;
 using UnityEngine;
 using vFrame.ResourceToolset.Editor.Common;
 using vFrame.ResourceToolset.Editor.Utils;
@@ -47,61 +49,93 @@ namespace vFrame.ResourceToolset.Editor.Windows.Importer.Rules
         [SerializeField]
         [VerticalGroup(GroupName)]
         [TitleGroup(GroupName + "/Texture Import Platform Setting")]
+        [Header("WebGL")]
+        [HideLabel]
+        private PresetTextureImportPlatformSetting _webGLPlatformSetting = new PresetTextureImportPlatformSetting();
+
+        [SerializeField]
+        [VerticalGroup(GroupName)]
+        [TitleGroup(GroupName + "/Texture Import Platform Setting")]
         [Header("Standalone")]
         [HideLabel]
         private PresetTextureImportPlatformSetting _standalonePlatformSetting = new PresetTextureImportPlatformSetting();
+
+        [SerializeField]
+        [VerticalGroup(GroupName)]
+        [TitleGroup(GroupName + "/Texture Import Platform Setting")]
+        [Header("Windows Store Apps")]
+        [HideLabel]
+        private PresetTextureImportPlatformSetting _wsaPlatformSetting = new PresetTextureImportPlatformSetting();
 
         private void OnAdvanceModeChanged() {
             _importSetting.Advance = _advanceMode;
             _iOSPlatformSetting.Advance = _advanceMode;
             _androidPlatformSetting.Advance = _advanceMode;
+            _webGLPlatformSetting.Advance = _advanceMode;
             _standalonePlatformSetting.Advance = _advanceMode;
+            _wsaPlatformSetting.Advance = _advanceMode;
         }
 
-        private static bool SetImporterValueIfEnable(ToggleableField toggleField, object importer, string importerFieldName) {
+
+        private bool SetPackingTagValueIfEnable(TFPackingTag toggleField, TextureImporter importer) {
             if (!toggleField.Enabled) {
                 return false;
             }
 
-            var newValue = ReflectionUtils.GetPropertyValue(toggleField, "Value");
-            var prevValue = ReflectionUtils.GetPropertyValue(importer, importerFieldName);
+            var newValue = toggleField.Value;
+            switch (toggleField.GenerationType) {
+                case PackingTagGenerationType.GeneratedByAssetName:
+                    var fileName = Path.GetFileNameWithoutExtension(importer.assetPath);
+                    var dir = Path.GetDirectoryName(importer.assetPath);
+                    newValue = string.IsNullOrEmpty(dir) ? fileName : Path.Combine(dir, fileName);
+                    newValue = newValue.Replace("\\", "/").Replace("Assets/", "").Replace("/", "_");
+                    break;
+                case PackingTagGenerationType.GeneratedByAssetFolder:
+                    newValue = Path.GetDirectoryName(importer.assetPath);
+                    if (!string.IsNullOrEmpty(newValue)) {
+                        newValue = newValue.Replace("\\", "/").Replace("Assets/", "").Replace("/", "_");
+                    }
+                    break;
+            }
+
+            var prevValue = ReflectionUtils.GetPropertyValue(importer, "spritePackingTag") as string;
             if (prevValue == newValue) {
                 return false;
             }
-            ReflectionUtils.SetPropertyValue(importer, importerFieldName, newValue);
+            ReflectionUtils.SetPropertyValue(importer, "spritePackingTag", newValue);
             return true;
         }
 
         private bool UpdateImporterSettings(TextureImporter assetImporter) {
             // ReSharper disable once ReplaceWithSingleAssignment.False
             var ret = false;
-            if (SetImporterValueIfEnable(_importSetting.TextureImporterType, assetImporter, "textureType")) {
+            if (SetImporterPropertyValueIfEnable(_importSetting.TextureImporterType, assetImporter, "textureType")) {
                 ret = true;
             }
-            if (SetImporterValueIfEnable(_importSetting.PackingTag, assetImporter, "spritePackingTag")) {
+            if (SetImporterPropertyValueIfEnable(_importSetting.sRGB, assetImporter, "sRGBTexture")) {
                 ret = true;
             }
-            if (SetImporterValueIfEnable(_importSetting.sRGB, assetImporter, "sRGBTexture")) {
-                ret = true;
-            }
-            if (SetImporterValueIfEnable(_importSetting.Mipmap, assetImporter, "mipmapEnabled")) {
+            if (SetImporterPropertyValueIfEnable(_importSetting.Mipmap, assetImporter, "mipmapEnabled")) {
                 ret = true;
             }
             if (_importSetting.Mipmap.Enabled
                 && _importSetting.Mipmap.Value
-                && SetImporterValueIfEnable(_importSetting.AnisoLevel, assetImporter, "anisoLevel")) {
+                && SetImporterPropertyValueIfEnable(_importSetting.AnisoLevel, assetImporter, "anisoLevel")) {
                 ret = true;
             }
-            if (SetImporterValueIfEnable(_importSetting.Readable, assetImporter, "isReadable")) {
+            if (SetImporterPropertyValueIfEnable(_importSetting.Readable, assetImporter, "isReadable")) {
                 ret = true;
             }
-            if (SetImporterValueIfEnable(_importSetting.AlphaIsTransparent, assetImporter, "alphaIsTransparency")) {
+            if (SetImporterPropertyValueIfEnable(_importSetting.AlphaIsTransparent, assetImporter, "alphaIsTransparency")) {
                 ret = true;
             }
-            if (SetImporterValueIfEnable(_importSetting.FilterMode, assetImporter, "filterMode")) {
+            if (SetImporterPropertyValueIfEnable(_importSetting.FilterMode, assetImporter, "filterMode")) {
                 ret = true;
             }
-            if (SetImporterValueIfEnable(_importSetting.WrapMode, assetImporter, "wrapMode")) {
+            if (SetImporterPropertyValueIfEnable(_importSetting.WrapMode, assetImporter, "wrapMode")) {
+                ret = true;
+            }
+            if (SetPackingTagValueIfEnable(_importSetting.PackingTag, assetImporter)) {
                 ret = true;
             }
             return ret;
@@ -113,15 +147,10 @@ namespace vFrame.ResourceToolset.Editor.Windows.Importer.Rules
 
             // ReSharper disable once ReplaceWithSingleAssignment.False
             var ret = false;
-            if (SetImporterValueIfEnable(inputSettings.Override, outputSettings, "overridden")) {
+            if (SetImporterPropertyValueIfEnable(inputSettings.MaxSize, outputSettings, "maxTextureSize")) {
                 ret = true;
             }
-            if (inputSettings.Override.Enabled
-                && inputSettings.Override.Value
-                && SetImporterValueIfEnable(inputSettings.MaxSize, outputSettings, "maxTextureSize")) {
-                ret = true;
-            }
-            if (inputSettings.Override.Enabled && inputSettings.Override.Value && inputSettings.TextureFormat.Enabled) {
+            if (inputSettings.TextureFormat.Enabled) {
                 var format = inputSettings.TextureFormat.Value;
                 if (_autoDetectAlphaChannel) {
                     format = AssetImportUtils.RemapTextureFormatType(importer.DoesSourceTextureHaveAlpha(), format);
@@ -146,21 +175,26 @@ namespace vFrame.ResourceToolset.Editor.Windows.Importer.Rules
             }
 
             // Update platform settings
-            var iosPlatformSettings = assetImporter.GetPlatformTextureSettings("iPhone");
-            if (UpdatePlatformSettings(_iOSPlatformSetting, iosPlatformSettings, assetImporter)) {
-                assetImporter.SetPlatformTextureSettings(iosPlatformSettings);
-                ret = true;
+            void UpdatePlatformSettingsIfEnabled(PresetTextureImportPlatformSetting inputSettings, string platform) {
+                if (inputSettings.Override.Enabled) {
+                    if (inputSettings.Override.Value) {
+                        var platformSettings = assetImporter.GetPlatformTextureSettings(platform);
+                        platformSettings.overridden = true;
+                        if (UpdatePlatformSettings(inputSettings, platformSettings, assetImporter)) {
+                            assetImporter.SetPlatformTextureSettings(platformSettings);
+                            ret = true;
+                        }
+                    }
+                    else {
+                        assetImporter.ClearPlatformTextureSettings(platform);
+                    }
+                }
             }
-            var androidPlatformSettings = assetImporter.GetPlatformTextureSettings("Android");
-            if(UpdatePlatformSettings(_androidPlatformSetting, androidPlatformSettings, assetImporter)) {
-                assetImporter.SetPlatformTextureSettings(androidPlatformSettings);
-                ret = true;
-            }
-            var standalonePlatformSetting = assetImporter.GetPlatformTextureSettings("Standalone");
-            if (UpdatePlatformSettings(_standalonePlatformSetting, standalonePlatformSetting, assetImporter)) {
-                assetImporter.SetPlatformTextureSettings(standalonePlatformSetting);
-                ret = true;
-            }
+            UpdatePlatformSettingsIfEnabled(_iOSPlatformSetting, NamedBuildTarget.iOS.TargetName);
+            UpdatePlatformSettingsIfEnabled(_androidPlatformSetting, NamedBuildTarget.Android.TargetName);
+            UpdatePlatformSettingsIfEnabled(_webGLPlatformSetting, NamedBuildTarget.WebGL.TargetName);
+            UpdatePlatformSettingsIfEnabled(_standalonePlatformSetting, NamedBuildTarget.Standalone.TargetName);
+            UpdatePlatformSettingsIfEnabled(_wsaPlatformSetting, NamedBuildTarget.WindowsStoreApps.TargetName);
 
             return ret;
         }
@@ -172,7 +206,7 @@ namespace vFrame.ResourceToolset.Editor.Windows.Importer.Rules
             private TFTextureImportType _textureImportType = new TFTextureImportType("Texture Import Type");
 
             [SerializeField]
-            private ToggleableFieldString _packingTag = new ToggleableFieldString("Packing Tag");
+            private TFPackingTag _packingTag = new TFPackingTag("Packing Tag");
 
             [SerializeField]
             [ShowIf("@_advance")]
@@ -202,7 +236,7 @@ namespace vFrame.ResourceToolset.Editor.Windows.Importer.Rules
             private TFTextureWrapMode _wrapMode = new TFTextureWrapMode("Wrap Mode");
 
             public TFTextureImportType TextureImporterType => _textureImportType;
-            public ToggleableFieldString PackingTag => _packingTag;
+            public TFPackingTag PackingTag => _packingTag;
             public ToggleableFieldBool sRGB => _sRGB;
             public ToggleableFieldBool Mipmap => _mipmap;
             public ToggleableFieldInt AnisoLevel => _anisoLevel;
@@ -333,6 +367,43 @@ namespace vFrame.ResourceToolset.Editor.Windows.Importer.Rules
 
             public TFTextureWrapMode(string label) : base(label) {
             }
+        }
+
+        [Serializable]
+        [InlineProperty]
+        [HideLabel]
+        private class TFPackingTag : ToggleableField
+        {
+            #pragma warning disable 649
+
+            [SerializeField]
+            [HideLabel]
+            [HorizontalGroup(GroupName, width: 200)]
+            [EnableIf("Enabled")]
+            private PackingTagGenerationType _packingTagGenerationType;
+
+            [SerializeField]
+            [LabelText("Fixed Value")]
+            [LabelWidth(80)]
+            [HorizontalGroup(GroupName)]
+            [ShowIf("@Enabled && _packingTagGenerationType == PackingTagGenerationType.Fixed")]
+            private string _value ;
+
+            #pragma warning restore 649
+
+            public string Value => _value;
+            public PackingTagGenerationType GenerationType => _packingTagGenerationType;
+
+            public TFPackingTag(string label) : base(label)
+            {
+            }
+        }
+
+        private enum PackingTagGenerationType
+        {
+            Fixed,
+            GeneratedByAssetName,
+            GeneratedByAssetFolder,
         }
     }
 }

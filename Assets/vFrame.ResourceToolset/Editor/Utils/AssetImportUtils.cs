@@ -13,9 +13,9 @@ namespace vFrame.ResourceToolset.Editor.Utils
 
         private static AssetImporterRules _assetImporterRules;
 
-        public static AssetImporterRuleBase[] ImportAsset(string path, bool save = true) {
+        public static AssetImporterRuleBase[] ImportAsset(string path, bool save = true, bool fallbackOnNoRuleMatch = true) {
             var rules = FindImportRuleOf(path);
-            if (null == rules || rules.Length <= 0) {
+            if ((null == rules || rules.Length <= 0) && fallbackOnNoRuleMatch) {
                 AssetDatabase.ImportAsset(path); // Fallback to builtin import process.
                 Debug.LogWarningFormat(MsgNoAssetImportRuleFound, path);
                 return Array.Empty<AssetImporterRuleBase>();

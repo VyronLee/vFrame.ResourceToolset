@@ -17,7 +17,7 @@ namespace vFrame.ResourceToolset.Editor.Importers
         protected Material OnAssignMaterialModel(Material previousMaterial, Renderer renderer) {
             var config = ScriptableObjectUtils.GetScriptableObjectSingleton<BuiltinAssetConfig>();
             if (!config || !config.AutoReplaceFBXInternalMaterialOnImport) {
-                return previousMaterial;
+                return null;
             }
 
             var material = config.FBXInternalMaterialReplacement;
@@ -25,7 +25,7 @@ namespace vFrame.ResourceToolset.Editor.Importers
                 return material;
             }
             Debug.LogError("FBX internal material must be specified.");
-            return previousMaterial;
+            return null;
         }
 
         /// <summary>

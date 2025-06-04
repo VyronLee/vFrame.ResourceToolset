@@ -85,7 +85,9 @@ namespace vFrame.ResourceToolset.Editor.Windows.Importer
                 y = 50,
                 width = 600,
             };
+
             var selector = new AssetImporterRuleSelector();
+            selector.EnableSingleClickToSelect();
             selector.SelectionConfirmed += CreateRuleInternal;
             selector.ShowInPopup(pos);
         }

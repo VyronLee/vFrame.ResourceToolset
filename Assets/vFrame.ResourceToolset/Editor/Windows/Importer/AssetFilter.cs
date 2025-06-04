@@ -29,6 +29,14 @@ namespace vFrame.ResourceToolset.Editor.Windows.Importer
         [Indent]
         private AssetFilterByFilePath _filterByFilePath;
 
+        [SerializeField]
+        [ShowIf("@_filterType == FilterType.ByFileRegex")]
+        [HideLabel]
+        [InlineProperty]
+        [Indent]
+        private AssetFilterByFileRegex _filterByFileRegex;
+
+
         #pragma warning restore 649
 
         public string[] GetFiles() {
@@ -49,6 +57,8 @@ namespace vFrame.ResourceToolset.Editor.Windows.Importer
                     return _filterByFolderAndExtension;
                 case FilterType.ByFilePath:
                     return _filterByFilePath;
+                case FilterType.ByFileRegex:
+                    return _filterByFileRegex;
                 default:
                     throw new ArgumentOutOfRangeException();
             }
@@ -59,5 +69,6 @@ namespace vFrame.ResourceToolset.Editor.Windows.Importer
     {
         ByFolderAndExtension,
         ByFilePath,
+        ByFileRegex,
     }
 }
