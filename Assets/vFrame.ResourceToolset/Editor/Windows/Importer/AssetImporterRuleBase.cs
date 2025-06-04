@@ -59,9 +59,25 @@ namespace vFrame.ResourceToolset.Editor.Windows.Importer
 
         [SerializeField]
         [VerticalGroup(GroupName)]
+        [HorizontalGroup(GroupName2)]
         [LabelWidth(130)]
         private string _comment;
 
+        [VerticalGroup(GroupName)]
+        [HorizontalGroup(GroupName2, Width = 100)]
+        [Button(ButtonSizes.Small, Name = "Import")]
+        private void ImportAsset() {
+            _imported = true;
+            EditorCoroutineUtility.StartCoroutine(CoImportInternal(false), this);
+        }
+
+        [VerticalGroup(GroupName)]
+        [HorizontalGroup(GroupName2, Width = 100)]
+        [Button(ButtonSizes.Small, Name = "Force Import")]
+        private void ForceImportAsset() {
+            _imported = true;
+            EditorCoroutineUtility.StartCoroutine(CoImportInternal(true), this);
+        }
         [SerializeField]
         [VerticalGroup(GroupName)]
         [InlineProperty]
@@ -75,32 +91,11 @@ namespace vFrame.ResourceToolset.Editor.Windows.Importer
 
         [ShowInInspector]
         [VerticalGroup(GroupName)]
-        [HorizontalGroup(GroupName2)]
         [HideLabel]
         [ShowIf("_imported")]
         [ProgressBar(0f, 1f, 0.1695888f, 0.5964116f, 0.9716981f)]
         [ReadOnly]
         private float _importProgress;
-
-#pragma warning restore 0649, 0414
-
-        [VerticalGroup(GroupName)]
-        [HorizontalGroup(GroupName2, Width = 100)]
-        [Button(ButtonSizes.Small)]
-        [LabelText("Import")]
-        private void ImportAsset() {
-            _imported = true;
-            EditorCoroutineUtility.StartCoroutine(CoImportInternal(false), this);
-        }
-
-        [VerticalGroup(GroupName)]
-        [HorizontalGroup(GroupName2, Width = 100)]
-        [Button(ButtonSizes.Small)]
-        [LabelText("Force Import")]
-        private void ForceImportAsset() {
-            _imported = true;
-            EditorCoroutineUtility.StartCoroutine(CoImportInternal(true), this);
-        }
 
         #endregion
 
@@ -122,8 +117,9 @@ namespace vFrame.ResourceToolset.Editor.Windows.Importer
                 return;
             }
 
-            var md5 = AssetProcessorUtils.CalculateAssetHash(path);
-            hashData[path] = md5;
+            var ruleHash = GetRuleHash();
+            var assetHash = AssetProcessorUtils.CalculateAssetHash(path);
+            hashData[path] = $"{ruleHash},{assetHash}";
 
             if (!save) {
                 _dirtyFiles.Add(path);
@@ -182,6 +178,12 @@ namespace vFrame.ResourceToolset.Editor.Windows.Importer
                             }
                         }
                     }
+                    else
+                    {
+                        if (hash == assetHash) {
+                            return;
+                        }
+                    }
                 }
 
                 var importer = AssetImporter.GetAtPath(path);
@@ -190,7 +192,7 @@ namespace vFrame.ResourceToolset.Editor.Windows.Importer
                     updated.Add(path);
                 }
 
-                hashData[path] = assetHash;
+                hashData[path] = $"{ruleHash},{assetHash}";
             }
 
             var files = _filter.GetFiles();
@@ -320,10 +322,14 @@ namespace vFrame.ResourceToolset.Editor.Windows.Importer
                 return _ruleHashCacheFilePath;
             }
             var config = ScriptableObjectUtils.GetScriptableObjectSingleton<AssetImportConfig>();
-            if (!config) {
-                return _ruleHashCacheFilePath = $"{Application.dataPath}/{GetType().FullName}.asset";
+            var fileName = GetType().Name;
+            if (AssetDatabase.TryGetGUIDAndLocalFileIdentifier(this, out var guid, out long localId)) {
+                fileName += $"_{guid}";
             }
-            return _ruleHashCacheFilePath = $"{config.AssetHashCacheDirectory}/{GetType().FullName}.asset";
+            if (!config) {
+                return _ruleHashCacheFilePath = $"{Application.dataPath}/{fileName}.asset";
+            }
+            return _ruleHashCacheFilePath = $"{config.AssetHashCacheDirectory}/{fileName}.asset";
         }
 
         internal void ResetDisplay() {
@@ -348,6 +354,34 @@ namespace vFrame.ResourceToolset.Editor.Windows.Importer
                 return ret;
             }
             return string.Empty;
+        }
+
+        internal static bool SetImporterPropertyValueIfEnable(ToggleableField toggleField, object importer, string importerFieldName) {
+            if (!toggleField.Enabled) {
+                return false;
+            }
+
+            var newValue = ReflectionUtils.GetPropertyValue(toggleField, "Value");
+            var prevValue = ReflectionUtils.GetPropertyValue(importer, importerFieldName);
+            if (prevValue == newValue) {
+                return false;
+            }
+            ReflectionUtils.SetPropertyValue(importer, importerFieldName, newValue);
+            return true;
+        }
+
+        internal static bool SetImporterFieldValueIfEnable(ToggleableField toggleField, object importer, string importerFieldName) {
+            if (!toggleField.Enabled) {
+                return false;
+            }
+
+            var newValue = ReflectionUtils.GetFieldValue(toggleField, "Value");
+            var prevValue = ReflectionUtils.GetFieldValue(importer, importerFieldName);
+            if (prevValue == newValue) {
+                return false;
+            }
+            ReflectionUtils.SetFieldValue(importer, importerFieldName, newValue);
+            return true;
         }
     }
 

@@ -39,9 +39,10 @@ namespace vFrame.ResourceToolset.Editor.Common
         [ShowIf("@_collapsed")]
         [OnInspectorGUI]
         private void DisplaySummary() {
-            GUILayout.BeginVertical();
+            GUILayout.BeginHorizontal();
             GUILayout.Label(GetValueSummary());
-            GUILayout.EndVertical();
+            GUILayout.FlexibleSpace();
+            GUILayout.EndHorizontal();
         }
 
         public CollapsableField(T value, bool collapsed = true) {

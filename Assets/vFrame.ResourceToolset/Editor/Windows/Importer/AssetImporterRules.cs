@@ -95,6 +95,7 @@ namespace vFrame.ResourceToolset.Editor.Windows.Importer
                 ruleHash[guid] = AssetProcessorUtils.CalculateAssetHash(path);
             }
             EditorUtility.SetDirty(ruleHash);
+            EditorUtility.SetDirty(this);
             AssetDatabase.SaveAssets();
         }
 
@@ -133,10 +134,17 @@ namespace vFrame.ResourceToolset.Editor.Windows.Importer
             _ruleItems = _rules.ConvertAll(x => new CollapsableRule(x)).ToList();
         }
 
-        private void RemoveRuleAtIndex(int index) {
-            if (index < _ruleItems.Count) {
-                _ruleItems.RemoveAt(index);
+        private void RemoveRuleAtIndex(int index)
+        {
+            if (index >= _ruleItems.Count) {
+                return;
             }
+
+            var rule = _ruleItems[index];
+            var rulePath = AssetDatabase.GetAssetPath(rule.Value);
+            AssetDatabase.DeleteAsset(rulePath);
+
+            _ruleItems.RemoveAt(index);
         }
 
         private static AssetHashData GetOrCreateRuleHashData() {
