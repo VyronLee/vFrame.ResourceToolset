@@ -1,0 +1,43 @@
+name: CI
+
+on:
+  push:
+    branches: [master, develop]
+  pull_request:
+    branches: [master, develop]
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  editmode-tests:
+    # OdinInspector is a private Gitea UPM dependency. Keep the workflow green
+    # until its read-only credentials are configured for this repository.
+    if: ${{ secrets.ODIN_GIT_USERNAME != '' && secrets.ODIN_GIT_TOKEN != '' }}
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - name: Authorize private OdinInspector package
+        env:
+          ODIN_GIT_USERNAME: ${{ secrets.ODIN_GIT_USERNAME }}
+          ODIN_GIT_TOKEN: ${{ secrets.ODIN_GIT_TOKEN }}
+        run: |
+          git config --global \
+            url."https://${ODIN_GIT_USERNAME}:${ODIN_GIT_TOKEN}@gitea.kokuro-studio.com/".insteadOf \
+            "https://gitea.kokuro-studio.com/"
+      - uses: game-ci/unity-test-runner@v4
+        env:
+          UNITY_LICENSE: ${{ secrets.UNITY_LICENSE }}
+          UNITY_EMAIL: ${{ secrets.UNITY_EMAIL }}
+          UNITY_PASSWORD: ${{ secrets.UNITY_PASSWORD }}
+        with:
+          unityVersion: 2019.4.40f1
+          testMode: EditMode
+          artifactsPath: artifacts/editmode
+      - if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: editmode-results
+          path: artifacts/editmode
+          if-no-files-found: warn
