@@ -14,7 +14,7 @@ jobs:
   editmode-tests:
     # OdinInspector is a private Gitea UPM dependency. Keep the workflow green
     # until its read-only credentials are configured for this repository.
-    if: ${{ secrets.ODIN_GIT_USERNAME != '' && secrets.ODIN_GIT_TOKEN != '' }}
+    if: ${{ vars.ODIN_CI_ENABLED == 'true' }}
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
