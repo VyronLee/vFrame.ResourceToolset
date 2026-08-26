@@ -62,3 +62,4 @@ crashlytics-build.properties
 Assets/Plugins/Editor.meta
 
 .idea
+.codegraph/
