@@ -1,8 +1,11 @@
+# Repository Agent Guidance
+
+The workspace-level guidance in `../AGENTS.md` applies to this repository. Read its referenced rules when their trigger matches the task.
 # vFrame.ResourceToolset
 
 Editor-only Unity package for asset inspection, batch processing, import rules, and dependency-aware migration.
 
-**Cross-package conventions** are defined in workspace `D:/Workspace/vFrame/.claude/rules/*.md`.
+**Cross-package conventions** are defined in workspace `D:/Workspace/vFrame/../.agents/rules/*.md`.
 
 ## Purpose
 
