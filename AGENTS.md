@@ -5,7 +5,7 @@ The workspace-level guidance in `../AGENTS.md` applies to this repository. Read 
 
 Editor-only Unity package for asset inspection, batch processing, import rules, and dependency-aware migration.
 
-**Cross-package conventions** are defined in workspace `D:/Workspace/vFrame/../.agents/rules/*.md`.
+**Cross-package conventions** are defined in workspace `../.pi/rules/*.md`.
 
 ## Purpose
 
